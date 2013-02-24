@@ -165,7 +165,10 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     /* this small struct is used to tell the core whether each controller is plugged in, and what type of pak is connected */
     /* we only need it so that we can call load_configuration below, to auto-config for a GUI front-end */
     for (i = 0; i < 4; i++)
+    {
         controller[i].control = temp_core_controlinfo + i;
+        controller[i].control->Present = 1;
+    }
 
     l_PluginInit = 1;
     return M64ERR_SUCCESS;
@@ -799,6 +802,9 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 
     for( i = 0; i < 4; i++ )
     {
+        // plug in all controllers
+        controller[i].control->Present = 1;
+
         // test for rumble support for this joystick
         InitiateRumble(i);
         // if rumble not supported, switch to mempack
