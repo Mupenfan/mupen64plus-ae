@@ -21,22 +21,14 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <string.h>                 // memset, NULL
 
 #define M64P_PLUGIN_PROTOTYPES 1
-#include "m64p_types.h"
-#include "m64p_plugin.h"
-#include "m64p_common.h"
-#include "m64p_config.h"
 
 #include "plugin.h"
 #include "version.h"
 
-#include <errno.h>
 #include <jni.h>
-#include <android/log.h>
 
 /* global data definitions */
 SController controller[4];   // 4 controllers
@@ -113,8 +105,6 @@ static CONTROL temp_core_controlinfo[4];
 /* Mupen64Plus plugin functions */
 EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle CoreLibHandle, void *Context, void (*DebugCallback)( void *, int, const char * ) )
 {
-    ptr_CoreGetAPIVersions CoreAPIVersionFunc;
-
     int i, ConfigAPIVersion, DebugAPIVersion, VidextAPIVersion;
 
     if( l_PluginInit )
