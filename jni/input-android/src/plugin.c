@@ -165,28 +165,6 @@ EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *PluginType, int *Plug
     return M64ERR_SUCCESS;
 }
 
-/* Helper function to handle the onscreen gamepad */
-static void doVirtualGamePad()
-{
-    int b, c;
-    for( c = 0; c < 4; c++ )
-    {
-        for( b = 0; b < 16; b++ )
-        {
-            if( virtualGamePadButtonState[c][b] )
-                controller[c].buttons.Value |= button_bits[b];
-        }
-        // from the N64 func ref: The 3D Stick data is of type signed char and in
-        // the range between 80 and -80. (32768 / 409 = ~80.1)
-        if( virtualGamePadAxisState[c][0] || virtualGamePadAxisState[c][1] )
-        {
-            // only report the stick position if it isn't back at the center
-            controller[c].buttons.X_AXIS = virtualGamePadAxisState[c][0];
-            controller[c].buttons.Y_AXIS = virtualGamePadAxisState[c][1];
-        }
-    }
-}
-
 static unsigned char DataCRC( unsigned char *Data, int iLenght )
 {
     unsigned char Remainder = Data[0];
@@ -323,9 +301,23 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
 *******************************************************************/
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
-///// paulscode, handle input from the virtual gamepad
-    doVirtualGamePad();
-////
+    int b, c;
+    for( c = 0; c < 4; c++ )
+    {
+        for( b = 0; b < 16; b++ )
+        {
+            if( virtualGamePadButtonState[c][b] )
+                controller[c].buttons.Value |= button_bits[b];
+        }
+        // from the N64 func ref: The 3D Stick data is of type signed char and in
+        // the range between 80 and -80. (32768 / 409 = ~80.1)
+        if( virtualGamePadAxisState[c][0] || virtualGamePadAxisState[c][1] )
+        {
+            // only report the stick position if it isn't back at the center
+            controller[c].buttons.X_AXIS = virtualGamePadAxisState[c][0];
+            controller[c].buttons.Y_AXIS = virtualGamePadAxisState[c][1];
+        }
+    }
 
     DebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
     *Keys = controller[Control].buttons;
