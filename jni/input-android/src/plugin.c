@@ -34,27 +34,10 @@
 #include "plugin.h"
 #include "version.h"
 
-#ifdef __linux__
-#include <unistd.h>
-#include <dirent.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <linux/input.h>
-#endif /* __linux__ */
-
 #include <errno.h>
 #include <jni.h>
 #include <android/log.h>
 #define printf(...) __android_log_print(ANDROID_LOG_VERBOSE, "input-android, plugin.c", __VA_ARGS__)
-
-/* defines for the force feedback rumble support */
-#ifdef __linux__
-#define BITS_PER_LONG (sizeof(long) * 8)
-#define OFF(x)  ((x)%BITS_PER_LONG)
-#define BIT(x)  (1UL<<OFF(x))
-#define LONG(x) ((x)/BITS_PER_LONG)
-#define test_bit(bit, array)    ((array[LONG(bit)] >> OFF(bit)) & 1)
-#endif //__linux__
 
 /* global data definitions */
 SController controller[4];   // 4 controllers
@@ -84,12 +67,6 @@ static unsigned short button_bits[] = {
 };
 
 static int romopen = 0;         // is a rom opened
-
-#ifdef __linux__
-static struct ff_effect ffeffect[3];
-static struct ff_effect ffstrong[3];
-static struct ff_effect ffweak[3];
-#endif //__linux__
 
 //// paulscode, for the phone vibrator:
 extern void Android_JNI_Vibrate( int active );
@@ -337,31 +314,6 @@ printf( "dwAddress is not PAK_IO_RUMBLE" );
 }
 //#endif 
 
-#ifdef __linux__
-                struct input_event play;
-                if( dwAddress == PAK_IO_RUMBLE && controller[Control].event_joystick != 0)
-                {
-                    if( *Data )
-                    {
-                        play.type = EV_FF;
-                        play.code = ffeffect[Control].id;
-                        play.value = 1;
-
-                        if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                            perror("Error starting rumble effect");
-
-                    }
-                    else
-                    {
-                        play.type = EV_FF;
-                        play.code = ffeffect[Control].id;
-                        play.value = 0;
-
-                        if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                            perror("Error stopping rumble effect");
-                    }
-                }
-#endif //__linux__
                 Data[32] = DataCRC( Data, 32 );
             }
 
@@ -413,155 +365,11 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 #endif
     *Keys = controller[Control].buttons;
 
-    /* handle mempack / rumblepak switching (only if rumble is active on joystick) */
-#ifdef __linux__
-    if (controller[Control].event_joystick != 0)
-    {
-        struct input_event play;
-        static unsigned int SwitchPackTime[4] = {0, 0, 0, 0}, SwitchPackType[4] = {0, 0, 0, 0};
-        // when the user switches packs, we should mimick the act of removing 1 pack, and then inserting another 1 second later
-        if (controller[Control].buttons.Value & button_bits[14])
-        {
-            //SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
-            // TODO: Implement an alternative to SDL_GetTicks()
-            SwitchPackTime[Control] = 0;
-            SwitchPackType[Control] = PLUGIN_MEMPAK;          // type of new pack to insert
-            controller[Control].control->Plugin = PLUGIN_NONE;// remove old pack
-            play.type = EV_FF;
-            play.code = ffweak[Control].id;
-            play.value = 1;
-            if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                perror("Error starting rumble effect");
-        }
-        if (controller[Control].buttons.Value & button_bits[15])
-        {
-            //SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
-            // TODO: Implement an alternative to SDL_GetTicks()
-            SwitchPackTime[Control] = 0;
-            SwitchPackType[Control] = PLUGIN_RAW;             // type of new pack to insert
-            controller[Control].control->Plugin = PLUGIN_NONE;// remove old pack
-            play.type = EV_FF;
-            play.code = ffstrong[Control].id;
-            play.value = 1;
-            if (write(controller[Control].event_joystick, (const void*) &play, sizeof(play)) == -1)
-                perror("Error starting rumble effect");
-        }
-        // handle inserting new pack if the time has arrived
-        //int now = SDL_GetTicks();
-        // TODO: Implement an alternative to SDL_GetTicks()
-        int now = 0;
-        if (SwitchPackTime[Control] != 0 && (now - SwitchPackTime[Control]) >= 1000)
-        {
-            controller[Control].control->Plugin = SwitchPackType[Control];
-            SwitchPackTime[Control] = 0;
-        }
-    }
-#endif /* __linux__ */
-
     controller[Control].buttons.Value = 0;
 }
 
 static void InitiateRumble(int cntrl)
 {
-#ifdef __linux__
-    DIR* dp;
-    struct dirent* ep;
-    unsigned long features[4];
-    char temp[128];
-    char temp2[128];
-    int iFound = 0;
-
-    controller[cntrl].event_joystick = 0;
-
-    sprintf(temp,"/sys/class/input/js%d/device", controller[cntrl].device);
-    dp = opendir(temp);
-
-    if(dp==NULL)
-        return;
-
-    while ((ep=readdir(dp)))
-        {
-        if (strncmp(ep->d_name, "event",5)==0)
-            {
-            sprintf(temp, "/dev/input/%s", ep->d_name);
-            iFound = 1;
-            break;
-            }
-        else if(strncmp(ep->d_name,"input:event", 11)==0)
-            {
-            sscanf(ep->d_name, "input:%s", temp2);
-            sprintf(temp, "/dev/input/%s", temp2);
-            iFound = 1;
-            break;
-            }
-        else if(strncmp(ep->d_name,"input:input", 11)==0)
-            {
-            strcat(temp, "/");
-            strcat(temp, ep->d_name);
-            closedir (dp);
-            dp = opendir(temp);
-            if(dp==NULL)
-                return;
-            }
-       }
-
-    closedir(dp);
-
-    if (!iFound)
-    {
-        DebugMessage(M64MSG_WARNING, "Couldn't find input event for rumble support.");
-        return;
-    }
-
-    controller[cntrl].event_joystick = open(temp, O_RDWR);
-    if(controller[cntrl].event_joystick==-1)
-        {
-        DebugMessage(M64MSG_WARNING, "Couldn't open device file '%s' for rumble support.", temp);
-        controller[cntrl].event_joystick = 0;
-        return;
-        }
-
-    if(ioctl(controller[cntrl].event_joystick, EVIOCGBIT(EV_FF, sizeof(unsigned long) * 4), features)==-1)
-        {
-        DebugMessage(M64MSG_WARNING, "Linux kernel communication failed for force feedback (rumble).\n");
-        controller[cntrl].event_joystick = 0;
-        return;
-        }
-
-    if(!test_bit(FF_RUMBLE, features))
-        {
-        DebugMessage(M64MSG_WARNING, "No rumble supported on N64 joystick #%i", cntrl + 1);
-        controller[cntrl].event_joystick = 0;
-        return;
-        }
-
-    ffeffect[cntrl].type = FF_RUMBLE;
-    ffeffect[cntrl].id = -1;
-    ffeffect[cntrl].u.rumble.strong_magnitude = 0xFFFF;
-    ffeffect[cntrl].u.rumble.weak_magnitude = 0xFFFF;
-
-    ioctl(controller[cntrl].event_joystick, EVIOCSFF, &ffeffect[cntrl]);
-
-    ffstrong[cntrl].type = FF_RUMBLE;
-    ffstrong[cntrl].id = -1;
-    ffstrong[cntrl].u.rumble.strong_magnitude = 0xFFFF;
-    ffstrong[cntrl].u.rumble.weak_magnitude = 0x0000;
-    ffstrong[cntrl].replay.length = 500;
-    ffstrong[cntrl].replay.delay = 0;
-
-    ioctl(controller[cntrl].event_joystick, EVIOCSFF, &ffstrong[cntrl]);
-
-    ffweak[cntrl].type = FF_RUMBLE;
-    ffweak[cntrl].id = -1;
-    ffweak[cntrl].u.rumble.strong_magnitude = 0x0000;
-    ffweak[cntrl].u.rumble.weak_magnitude = 0xFFFF;
-    ffweak[cntrl].replay.length = 500;
-    ffweak[cntrl].replay.delay = 0;
-
-    ioctl(controller[cntrl].event_joystick, EVIOCSFF, &ffweak[cntrl]);
-
-    DebugMessage(M64MSG_INFO, "Rumble activated on N64 joystick #%i", cntrl + 1);
-#endif /* __linux__ */
 }
 
 /******************************************************************
@@ -662,4 +470,3 @@ EXPORT void CALL SDL_KeyDown(int keymod, int keysym)
 EXPORT void CALL SDL_KeyUp(int keymod, int keysym)
 {
 }
-
