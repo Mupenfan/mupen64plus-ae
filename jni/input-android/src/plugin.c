@@ -247,19 +247,13 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
     switch( Command[2] )
     {
     case RD_GETSTATUS:
-#ifdef _DEBUG
-        DebugMessage(M64MSG_INFO, "Get status");
-#endif
+        DebugMessage(M64MSG_VERBOSE, "Get status");
         break;
     case RD_READKEYS:
-#ifdef _DEBUG
-        DebugMessage(M64MSG_INFO, "Read keys");
-#endif
+        DebugMessage(M64MSG_VERBOSE, "Read keys");
         break;
     case RD_READPAK:
-#ifdef _DEBUG
-        DebugMessage(M64MSG_INFO, "Read pak");
-#endif
+        DebugMessage(M64MSG_VERBOSE, "Read pak");
         if( controller[Control].control->Plugin == PLUGIN_RAW )
         {
             unsigned int dwAddress = ( Command[3] << 8 ) + ( Command[4] & 0xE0 );
@@ -273,9 +267,7 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
         }
         break;
     case RD_WRITEPAK:
-#ifdef _DEBUG
-        DebugMessage(M64MSG_INFO, "Write pak");
-#endif
+        DebugMessage(M64MSG_VERBOSE, "Write pak");
         if( controller[Control].control->Plugin == PLUGIN_RAW )
         {
 
@@ -320,19 +312,13 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
 
         break;
     case RD_RESETCONTROLLER:
-#ifdef _DEBUG
-        DebugMessage(M64MSG_INFO, "Reset controller");
-#endif
+        DebugMessage(M64MSG_VERBOSE, "Reset controller");
         break;
     case RD_READEEPROM:
-#ifdef _DEBUG
-        DebugMessage(M64MSG_INFO, "Read eeprom");
-#endif
+        DebugMessage(M64MSG_VERBOSE, "Read eeprom");
         break;
     case RD_WRITEEPROM:
-#ifdef _DEBUG
-        DebugMessage(M64MSG_INFO, "Write eeprom");
-#endif
+        DebugMessage(M64MSG_VERBOSE, "Write eeprom");
         break;
     }
 }
@@ -356,9 +342,7 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     doVirtualGamePad();
 ////
 
-#ifdef _DEBUG
     DebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
-#endif
     *Keys = controller[Control].buttons;
 
     controller[Control].buttons.Value = 0;
@@ -416,11 +400,9 @@ EXPORT void CALL InitiateControllers( CONTROL_INFO ControlInfo )
 *******************************************************************/
 EXPORT void CALL ReadController( int Control, unsigned char *Command )
 {
-#ifdef _DEBUG
     if (Command != NULL)
-    DebugMessage(M64MSG_INFO, "Raw Read (cont=%d):  %02X %02X %02X %02X %02X %02X", Control,
+        DebugMessage(M64MSG_VERBOSE, "Raw Read (cont=%d):  %02X %02X %02X %02X %02X %02X", Control,
             Command[0], Command[1], Command[2], Command[3], Command[4], Command[5]);
-#endif
 }
 
 /******************************************************************
