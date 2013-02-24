@@ -202,41 +202,6 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
     return M64ERR_SUCCESS;
 }
 
-/* Helper function to handle the SDL keys */
-static void
-doSdlKeys(unsigned char* keystate)
-{
-    int c, b, axis_val, axis_max_val;
-    static int grabmouse = 1, grabtoggled = 0;
-
-    axis_max_val = 80;
-
-    for( c = 0; c < 4; c++ )
-    {
-        for( b = 0; b < 16; b++ )
-        {
-        }
-        for( b = 0; b < 2; b++ )
-        {
-            // from the N64 func ref: The 3D Stick data is of type signed char and in
-            // the range between 80 and -80. (32768 / 409 = ~80.1)
-            if( b == 0 )
-                axis_val = controller[c].buttons.X_AXIS;
-            else
-                axis_val = -controller[c].buttons.Y_AXIS;
-
-            if( b == 0 )
-                controller[c].buttons.X_AXIS = axis_val;
-            else
-                controller[c].buttons.Y_AXIS = -axis_val;
-        }
-        if (controller[c].mouse)
-        {
-            grabtoggled = 0;
-        }
-    }
-}
-
 /* Helper function to handle the onscreen gamepad */
 static void doVirtualGamePad()
 {
@@ -442,102 +407,6 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 ///// paulscode, handle input from the virtual gamepad
     doVirtualGamePad();
 ////
-
-    if( controller[Control].device >= 0 )
-    {
-        for( b = 0; b < 16; b++ )
-        {
-            if( controller[Control].button[b].axis >= 0 )
-            {
-                int deadzone = controller[Control].button[b].axis_deadzone;
-                axis_val = 0;
-                if (deadzone < 0)
-                    deadzone = 6000; /* default */
-                if( (controller[Control].button[b].axis_dir < 0) && (axis_val <= -deadzone) )
-                    controller[Control].buttons.Value |= button_bits[b];
-                else if( (controller[Control].button[b].axis_dir > 0) && (axis_val >= deadzone) )
-                    controller[Control].buttons.Value |= button_bits[b];
-            }
-
-            if( controller[Control].button[b].hat >= 0 )
-            {
-            }
-        }
-        for( b = 0; b < 2; b++ )
-        {
-            /* from the N64 func ref: The 3D Stick data is of type signed char and in the range between -80 and +80 */
-            int deadzone = controller[Control].axis_deadzone[b];
-            int range = controller[Control].axis_peak[b] - controller[Control].axis_deadzone[b];
-            /* skip this axis if the deadzone/peak values are invalid */
-            if (deadzone < 0 || range < 1)
-                continue;
-
-            if( b == 0 )
-                axis_val = controller[Control].buttons.X_AXIS;
-            else
-                axis_val = -controller[Control].buttons.Y_AXIS;
-
-            if( controller[Control].axis[b].axis_a >= 0 )  /* up and left for N64 */
-            {
-                int joy_val = 0;
-                int axis_dir = controller[Control].axis[b].axis_dir_a;
-                if (joy_val * axis_dir > deadzone)
-                    axis_val = -((abs(joy_val) - deadzone) * 80 / range);
-                if (axis_val < -80)
-                    axis_val = -80;
-            }
-            if( controller[Control].axis[b].axis_b >= 0 ) /* down and right for N64 */
-            {
-                int joy_val = 0;
-                int axis_dir = controller[Control].axis[b].axis_dir_b;
-                if (joy_val * axis_dir > deadzone)
-                    axis_val = ((abs(joy_val) - deadzone) * 80 / range);
-                if (axis_val > 80)
-                    axis_val = 80;
-            }
-            if( controller[Control].axis[b].hat >= 0 )
-            {
-            }
-
-            if( b == 0 )
-                controller[Control].buttons.X_AXIS = axis_val;
-            else
-                controller[Control].buttons.Y_AXIS = -axis_val;
-        }
-    }
-
-    // process mouse events
-    mstate = 0;
-    for( b = 0; b < 16; b++ )
-    {
-        if( controller[Control].button[b].mouse < 1 )
-            continue;
-        if( mstate )
-            controller[Control].buttons.Value |= button_bits[b];
-    }
-
-    if (controller[Control].mouse)
-    {
-        {
-            mousex_residual = 0;
-            mousey_residual = 0;
-        }
-        axis_val = mousex_residual;
-        if (axis_val < -80)
-            axis_val = -80;
-        else if (axis_val > 80)
-            axis_val = 80;
-        controller[Control].buttons.X_AXIS = axis_val;
-        axis_val = mousey_residual;
-        if (axis_val < -80)
-            axis_val = -80;
-        else if (axis_val > 80)
-            axis_val = 80;
-        controller[Control].buttons.Y_AXIS = -axis_val;
-        /* the mouse x/y values decay exponentially */
-        mousex_residual = (mousex_residual * 224) / 256;
-        mousey_residual = (mousey_residual * 224) / 256;
-    }
 
 #ifdef _DEBUG
     DebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
@@ -758,7 +627,6 @@ EXPORT void CALL ReadController(int Control, unsigned char *Command)
 *******************************************************************/
 EXPORT void CALL RomClosed(void)
 {
-    romopen = 0;
 }
 
 /******************************************************************
@@ -770,7 +638,6 @@ EXPORT void CALL RomClosed(void)
 *******************************************************************/
 EXPORT int CALL RomOpen(void)
 {
-    romopen = 1;
     return 1;
 }
 
