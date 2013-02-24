@@ -37,7 +37,6 @@
 #include <errno.h>
 #include <jni.h>
 #include <android/log.h>
-#define printf(...) __android_log_print(ANDROID_LOG_VERBOSE, "input-android, plugin.c", __VA_ARGS__)
 
 /* global data definitions */
 SController controller[4];   // 4 controllers
@@ -65,8 +64,6 @@ static unsigned short button_bits[] = {
     0x4000,  // Mempak switch
     0x8000   // Rumblepak switch
 };
-
-static int romopen = 0;         // is a rom opened
 
 //// paulscode, for the phone vibrator:
 extern void Android_JNI_Vibrate( int active );
@@ -283,7 +280,7 @@ EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
             if (controller[Control].control->Plugin == PLUGIN_RAW)
             {
 
-printf( "RD_WRITEPAK, and control->Plugin is PLUGIN_RAW!" );
+                DebugMessage(M64MSG_VERBOSE, "RD_WRITEPAK, and control->Plugin is PLUGIN_RAW!");
 
                 unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
               if (dwAddress == PAK_IO_RUMBLE && *Data)
@@ -292,17 +289,17 @@ printf( "RD_WRITEPAK, and control->Plugin is PLUGIN_RAW!" );
 //#ifdef ANDROID
                 if( dwAddress == PAK_IO_RUMBLE )
                 {
-printf( "dwAddress is PAK_IO_RUMBLE!" );
+                    DebugMessage(M64MSG_VERBOSE, "dwAddress is PAK_IO_RUMBLE!");
                     if( *Data )
                     {
-printf( "*Data exists! Vibrating..." );
+                        DebugMessage(M64MSG_VERBOSE, "*Data exists! Vibrating...");
                         DebugMessage( M64MSG_INFO, "Android, activating device vibrator" );
                         // TODO: Implement vibration interface to java
                         // Android_JNI_Vibrate( 1 );
                     }
                     else
                     {
-printf( "*Data doesn't exist! Stopping Vibration..." );
+                        DebugMessage(M64MSG_VERBOSE, "*Data doesn't exist! Stopping Vibration...");
                         DebugMessage( M64MSG_INFO, "Android, deactivating device vibrator" );
                         // TODO: Implement vibration interface to java
                         // Android_JNI_Vibrate( 0 );
@@ -310,7 +307,7 @@ printf( "*Data doesn't exist! Stopping Vibration..." );
                 }
 else
 {
-printf( "dwAddress is not PAK_IO_RUMBLE" );
+    DebugMessage(M64MSG_VERBOSE, "dwAddress is not PAK_IO_RUMBLE");
 }
 //#endif 
 
@@ -319,7 +316,7 @@ printf( "dwAddress is not PAK_IO_RUMBLE" );
 
 else
 {
-printf( "RD_WRITEPAK, but control->Plugin not PLUGIN_RAW" );
+    DebugMessage(M64MSG_VERBOSE, "RD_WRITEPAK, but control->Plugin not PLUGIN_RAW");
 }
 
             break;
