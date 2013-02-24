@@ -25,8 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <SDL.h>
-
 #define M64P_PLUGIN_PROTOTYPES 1
 #include "m64p_types.h"
 #include "m64p_plugin.h"
@@ -86,8 +84,6 @@ static unsigned short button_bits[] = {
 };
 
 static int romopen = 0;         // is a rom opened
-
-static unsigned char myKeyState[SDL_NUM_SCANCODES];
 
 #ifdef __linux__
 static struct ff_effect ffeffect[3];
@@ -157,10 +153,6 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
 
     /* reset controllers */
     memset(controller, 0, sizeof(SController) * 4);
-    for (i = 0; i < SDL_NUM_SCANCODES; i++)
-    {
-        myKeyState[i] = 0;
-    }
     /* set CONTROL struct pointers to the temporary static array */
     /* this small struct is used to tell the core whether each controller is plugged in, and what type of pak is connected */
     /* we only need it so that we can call load_configuration below, to auto-config for a GUI front-end */
@@ -218,19 +210,11 @@ doSdlKeys(unsigned char* keystate)
     static int grabmouse = 1, grabtoggled = 0;
 
     axis_max_val = 80;
-    if (keystate[SDL_SCANCODE_RCTRL])
-        axis_max_val -= 40;
-    if (keystate[SDL_SCANCODE_RSHIFT])
-        axis_max_val -= 20;
 
     for( c = 0; c < 4; c++ )
     {
         for( b = 0; b < 16; b++ )
         {
-            if( controller[c].button[b].key == SDL_SCANCODE_UNKNOWN || ((int) controller[c].button[b].key) < 0)
-                continue;
-            if( keystate[controller[c].button[b].key] )
-                controller[c].buttons.Value |= button_bits[b];
         }
         for( b = 0; b < 2; b++ )
         {
@@ -241,13 +225,6 @@ doSdlKeys(unsigned char* keystate)
             else
                 axis_val = -controller[c].buttons.Y_AXIS;
 
-            if( controller[c].axis[b].key_a != SDL_SCANCODE_UNKNOWN && ((int) controller[c].axis[b].key_a) > 0)
-                if( keystate[controller[c].axis[b].key_a] )
-                    axis_val = -axis_max_val;
-            if( controller[c].axis[b].key_b != SDL_SCANCODE_UNKNOWN && ((int) controller[c].axis[b].key_b) > 0)
-                if( keystate[controller[c].axis[b].key_b] )
-                    axis_val = axis_max_val;
-
             if( b == 0 )
                 controller[c].buttons.X_AXIS = axis_val;
             else
@@ -255,22 +232,7 @@ doSdlKeys(unsigned char* keystate)
         }
         if (controller[c].mouse)
         {
-            if (keystate[SDL_SCANCODE_LCTRL] && keystate[SDL_SCANCODE_LALT])
-            {
-                if (!grabtoggled)
-                {
-                    grabtoggled = 1;
-                    grabmouse = !grabmouse;
-                    // grab/ungrab mouse
-#if SDL_VERSION_ATLEAST(2,0,0)
-#warning SDL mouse grabbing not yet supported with SDL 2.0
-#else
-                    SDL_WM_GrabInput( grabmouse ? SDL_GRAB_ON : SDL_GRAB_OFF );
-#endif
-                    SDL_ShowCursor( grabmouse ? 0 : 1 );
-                }
-            }
-            else grabtoggled = 0;
+            grabtoggled = 0;
         }
     }
 }
@@ -393,13 +355,15 @@ printf( "dwAddress is PAK_IO_RUMBLE!" );
                     {
 printf( "*Data exists! Vibrating..." );
                         DebugMessage( M64MSG_INFO, "Android, activating device vibrator" );
-                        Android_JNI_Vibrate( 1 );
+                        // TODO: Implement vibration interface to java
+                        // Android_JNI_Vibrate( 1 );
                     }
                     else
                     {
 printf( "*Data doesn't exist! Stopping Vibration..." );
                         DebugMessage( M64MSG_INFO, "Android, deactivating device vibrator" );
-                        Android_JNI_Vibrate( 0 );
+                        // TODO: Implement vibration interface to java
+                        // Android_JNI_Vibrate( 0 );
                     }
                 }
 else
@@ -473,32 +437,20 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     static int mousex_residual = 0;
     static int mousey_residual = 0;
     int b, axis_val;
-    SDL_Event event;
     unsigned char mstate;
-
-    // Handle keyboard input first
-    doSdlKeys(SDL_GetKeyboardState(NULL));
-    doSdlKeys(myKeyState);
 
 ///// paulscode, handle input from the virtual gamepad
     doVirtualGamePad();
 ////
 
-    // read joystick state
-    SDL_JoystickUpdate();
-
     if( controller[Control].device >= 0 )
     {
         for( b = 0; b < 16; b++ )
         {
-            if( controller[Control].button[b].button >= 0 )
-                if( SDL_JoystickGetButton( controller[Control].joystick, controller[Control].button[b].button ) )
-                    controller[Control].buttons.Value |= button_bits[b];
-
             if( controller[Control].button[b].axis >= 0 )
             {
                 int deadzone = controller[Control].button[b].axis_deadzone;
-                axis_val = SDL_JoystickGetAxis( controller[Control].joystick, controller[Control].button[b].axis );
+                axis_val = 0;
                 if (deadzone < 0)
                     deadzone = 6000; /* default */
                 if( (controller[Control].button[b].axis_dir < 0) && (axis_val <= -deadzone) )
@@ -509,9 +461,6 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 
             if( controller[Control].button[b].hat >= 0 )
             {
-                if( controller[Control].button[b].hat_pos > 0 )
-                    if( SDL_JoystickGetHat( controller[Control].joystick, controller[Control].button[b].hat ) & controller[Control].button[b].hat_pos )
-                        controller[Control].buttons.Value |= button_bits[b];
             }
         }
         for( b = 0; b < 2; b++ )
@@ -530,7 +479,7 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 
             if( controller[Control].axis[b].axis_a >= 0 )  /* up and left for N64 */
             {
-                int joy_val = SDL_JoystickGetAxis(controller[Control].joystick, controller[Control].axis[b].axis_a);
+                int joy_val = 0;
                 int axis_dir = controller[Control].axis[b].axis_dir_a;
                 if (joy_val * axis_dir > deadzone)
                     axis_val = -((abs(joy_val) - deadzone) * 80 / range);
@@ -539,7 +488,7 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
             }
             if( controller[Control].axis[b].axis_b >= 0 ) /* down and right for N64 */
             {
-                int joy_val = SDL_JoystickGetAxis(controller[Control].joystick, controller[Control].axis[b].axis_b);
+                int joy_val = 0;
                 int axis_dir = controller[Control].axis[b].axis_dir_b;
                 if (joy_val * axis_dir > deadzone)
                     axis_val = ((abs(joy_val) - deadzone) * 80 / range);
@@ -548,20 +497,7 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
             }
             if( controller[Control].axis[b].hat >= 0 )
             {
-                if( controller[Control].axis[b].hat_pos_a >= 0 )
-                    if( SDL_JoystickGetHat( controller[Control].joystick, controller[Control].axis[b].hat ) & controller[Control].axis[b].hat_pos_a )
-                        axis_val = -80;
-                if( controller[Control].axis[b].hat_pos_b >= 0 )
-                    if( SDL_JoystickGetHat( controller[Control].joystick, controller[Control].axis[b].hat ) & controller[Control].axis[b].hat_pos_b )
-                        axis_val = 80;
             }
-
-            if( controller[Control].axis[b].button_a >= 0 )
-                if( SDL_JoystickGetButton( controller[Control].joystick, controller[Control].axis[b].button_a ) )
-                    axis_val = -80;
-            if( controller[Control].axis[b].button_b >= 0 )
-                if( SDL_JoystickGetButton( controller[Control].joystick, controller[Control].axis[b].button_b ) )
-                    axis_val = 80;
 
             if( b == 0 )
                 controller[Control].buttons.X_AXIS = axis_val;
@@ -571,41 +507,17 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     }
 
     // process mouse events
-    mstate = SDL_GetMouseState( NULL, NULL );
+    mstate = 0;
     for( b = 0; b < 16; b++ )
     {
         if( controller[Control].button[b].mouse < 1 )
             continue;
-        if( mstate & SDL_BUTTON(controller[Control].button[b].mouse) )
+        if( mstate )
             controller[Control].buttons.Value |= button_bits[b];
     }
 
     if (controller[Control].mouse)
     {
-#if SDL_VERSION_ATLEAST(2,0,0)
-#warning SDL mouse grabbing not yet supported with SDL 2.0
-#else
-        if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON)
-        {
-            SDL_PumpEvents();
-#if SDL_VERSION_ATLEAST(1,3,0)
-            while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION) == 1)
-#else
-            while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_EVENTMASK(SDL_MOUSEMOTION)) == 1)
-#endif
-            {
-                if (event.motion.xrel)
-                {
-                    mousex_residual += (int) (event.motion.xrel * controller[Control].mouse_sens[0]);
-                }
-                if (event.motion.yrel)
-                {
-                    mousey_residual += (int) (event.motion.yrel * controller[Control].mouse_sens[1]);
-                }
-            }
-        }
-        else
-#endif
         {
             mousex_residual = 0;
             mousey_residual = 0;
@@ -641,7 +553,9 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
         // when the user switches packs, we should mimick the act of removing 1 pack, and then inserting another 1 second later
         if (controller[Control].buttons.Value & button_bits[14])
         {
-            SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
+            //SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
+            // TODO: Implement an alternative to SDL_GetTicks()
+            SwitchPackTime[Control] = 0;
             SwitchPackType[Control] = PLUGIN_MEMPAK;          // type of new pack to insert
             controller[Control].control->Plugin = PLUGIN_NONE;// remove old pack
             play.type = EV_FF;
@@ -652,7 +566,9 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
         }
         if (controller[Control].buttons.Value & button_bits[15])
         {
-            SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
+            //SwitchPackTime[Control] = SDL_GetTicks();         // time at which the 'switch pack' command was given
+            // TODO: Implement an alternative to SDL_GetTicks()
+            SwitchPackTime[Control] = 0;
             SwitchPackType[Control] = PLUGIN_RAW;             // type of new pack to insert
             controller[Control].control->Plugin = PLUGIN_NONE;// remove old pack
             play.type = EV_FF;
@@ -662,7 +578,10 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
                 perror("Error starting rumble effect");
         }
         // handle inserting new pack if the time has arrived
-        if (SwitchPackTime[Control] != 0 && (SDL_GetTicks() - SwitchPackTime[Control]) >= 1000)
+        //int now = SDL_GetTicks();
+        // TODO: Implement an alternative to SDL_GetTicks()
+        int now = 0;
+        if (SwitchPackTime[Control] != 0 && (now - SwitchPackTime[Control]) >= 1000)
         {
             controller[Control].control->Plugin = SwitchPackType[Control];
             SwitchPackTime[Control] = 0;
@@ -791,10 +710,6 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
 
     // reset controllers
     memset( controller, 0, sizeof( SController ) * 4 );
-    for ( i = 0; i < SDL_NUM_SCANCODES; i++)
-    {
-        myKeyState[i] = 0;
-    }
     // set our CONTROL struct pointers to the array that was passed in to this function from the core
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
     for (i = 0; i < 4; i++)
@@ -843,27 +758,6 @@ EXPORT void CALL ReadController(int Control, unsigned char *Command)
 *******************************************************************/
 EXPORT void CALL RomClosed(void)
 {
-    int i;
-
-    // close joysticks
-    for( i = 0; i < 4; i++ )
-        if( controller[i].joystick )
-        {
-            SDL_JoystickClose( controller[i].joystick );
-            controller[i].joystick = NULL;
-        }
-
-    // quit SDL joystick subsystem
-    SDL_QuitSubSystem( SDL_INIT_JOYSTICK );
-
-    // release/ungrab mouse
-#if SDL_VERSION_ATLEAST(2,0,0)
-#warning SDL mouse grabbing not yet supported with SDL 2.0
-#else
-    SDL_WM_GrabInput( SDL_GRAB_OFF );
-#endif
-    SDL_ShowCursor( 1 );
-
     romopen = 0;
 }
 
@@ -876,41 +770,6 @@ EXPORT void CALL RomClosed(void)
 *******************************************************************/
 EXPORT int CALL RomOpen(void)
 {
-    int i;
-
-    // init SDL joystick subsystem
-    if( !SDL_WasInit( SDL_INIT_JOYSTICK ) )
-        if( SDL_InitSubSystem( SDL_INIT_JOYSTICK ) == -1 )
-        {
-            DebugMessage(M64MSG_ERROR, "Couldn't init SDL joystick subsystem: %s", SDL_GetError() );
-            return 0;
-        }
-
-    // open joysticks
-    for( i = 0; i < 4; i++ )
-        if( controller[i].device >= 0 )
-        {
-            controller[i].joystick = SDL_JoystickOpen( controller[i].device );
-            if( controller[i].joystick == NULL )
-                DebugMessage(M64MSG_WARNING, "Couldn't open joystick for controller #%d: %s", i + 1, SDL_GetError() );
-        }
-        else
-            controller[i].joystick = NULL;
-
-    // grab mouse
-    if (controller[0].mouse || controller[1].mouse || controller[2].mouse || controller[3].mouse)
-    {
-#if SDL_VERSION_ATLEAST(2,0,0)
-#warning SDL mouse grabbing not yet supported with SDL 2.0
-#else
-        SDL_ShowCursor( 0 );
-        if (SDL_WM_GrabInput( SDL_GRAB_ON ) != SDL_GRAB_ON)
-        {
-            DebugMessage(M64MSG_WARNING, "Couldn't grab input! Mouse support won't work!");
-        }
-#endif
-    }
-
     romopen = 1;
     return 1;
 }
@@ -924,7 +783,6 @@ EXPORT int CALL RomOpen(void)
 *******************************************************************/
 EXPORT void CALL SDL_KeyDown(int keymod, int keysym)
 {
-    myKeyState[keysym] = 1;
 }
 
 /******************************************************************
@@ -936,6 +794,5 @@ EXPORT void CALL SDL_KeyDown(int keymod, int keysym)
 *******************************************************************/
 EXPORT void CALL SDL_KeyUp(int keymod, int keysym)
 {
-    myKeyState[keysym] = 0;
 }
 
