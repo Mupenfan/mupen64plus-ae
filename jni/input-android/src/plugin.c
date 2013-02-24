@@ -42,11 +42,12 @@
 SController controller[4];   // 4 controllers
 
 /* static data definitions */
-static void (*l_DebugCallback)(void *, int, const char *) = NULL;
+static void (*l_DebugCallback)( void *, int, const char * ) = NULL;
 static void *l_DebugCallContext = NULL;
 static int l_PluginInit = 0;
 
-static unsigned short button_bits[] = {
+static unsigned short button_bits[] =
+{
     0x0001,  // R_DPAD
     0x0002,  // L_DPAD
     0x0004,  // D_DPAD
@@ -72,8 +73,7 @@ extern void Android_JNI_Vibrate( int active );
 unsigned char virtualGamePadButtonState[4][16];
 signed char virtualGamePadAxisState[4][2];
 JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_updateVirtualGamePadStates(
-                                    JNIEnv* env, jclass jcls, jint controllerNum,
-                                    jbooleanArray mp64pButtons, jint mp64pXAxis, jint mp64pYAxis )
+        JNIEnv* env, jclass jcls, jint controllerNum, jbooleanArray mp64pButtons, jint mp64pXAxis, jint mp64pYAxis )
 {
     jboolean *elements = (*env)->GetBooleanArrayElements( env, mp64pButtons, NULL );
     int b;
@@ -92,33 +92,32 @@ JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_
 ////
 
 /* Global functions */
-void DebugMessage(int level, const char *message, ...)
+void DebugMessage( int level, const char *message, ... )
 {
-  char msgbuf[1024];
-  va_list args;
+    char msgbuf[1024];
+    va_list args;
 
-  if (l_DebugCallback == NULL)
-      return;
+    if( l_DebugCallback == NULL )
+        return;
 
-  va_start(args, message);
-  vsprintf(msgbuf, message, args);
+    va_start( args, message );
+    vsprintf( msgbuf, message, args );
 
-  (*l_DebugCallback)(l_DebugCallContext, level, msgbuf);
+    ( *l_DebugCallback )( l_DebugCallContext, level, msgbuf );
 
-  va_end(args);
+    va_end( args );
 }
 
 static CONTROL temp_core_controlinfo[4];
 
 /* Mupen64Plus plugin functions */
-EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Context,
-                                   void (*DebugCallback)(void *, int, const char *))
+EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle CoreLibHandle, void *Context, void (*DebugCallback)( void *, int, const char * ) )
 {
     ptr_CoreGetAPIVersions CoreAPIVersionFunc;
-    
+
     int i, ConfigAPIVersion, DebugAPIVersion, VidextAPIVersion;
 
-    if (l_PluginInit)
+    if( l_PluginInit )
         return M64ERR_ALREADY_INIT;
 
     /* first thing is to set the callback function for debug info */
@@ -126,11 +125,11 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     l_DebugCallContext = Context;
 
     /* reset controllers */
-    memset(controller, 0, sizeof(SController) * 4);
+    memset( controller, 0, sizeof(SController) * 4 );
     /* set CONTROL struct pointers to the temporary static array */
     /* this small struct is used to tell the core whether each controller is plugged in, and what type of pak is connected */
     /* we only need it so that we can call load_configuration below, to auto-config for a GUI front-end */
-    for (i = 0; i < 4; i++)
+    for( i = 0; i < 4; i++ )
     {
         controller[i].control = temp_core_controlinfo + i;
         controller[i].control->Present = 1;
@@ -140,9 +139,9 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown(void)
+EXPORT m64p_error CALL PluginShutdown( void )
 {
-    if (!l_PluginInit)
+    if( !l_PluginInit )
         return M64ERR_NOT_INIT;
 
     /* reset some local variables */
@@ -153,26 +152,26 @@ EXPORT m64p_error CALL PluginShutdown(void)
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities)
+EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities )
 {
     /* set version info */
-    if (PluginType != NULL)
+    if( PluginType != NULL )
         *PluginType = M64PLUGIN_INPUT;
 
-    if (PluginVersion != NULL)
+    if( PluginVersion != NULL )
         *PluginVersion = PLUGIN_VERSION;
 
-    if (APIVersion != NULL)
+    if( APIVersion != NULL )
         *APIVersion = INPUT_PLUGIN_API_VERSION;
-    
-    if (PluginNamePtr != NULL)
+
+    if( PluginNamePtr != NULL )
         *PluginNamePtr = PLUGIN_NAME;
 
-    if (Capabilities != NULL)
+    if( Capabilities != NULL )
     {
         *Capabilities = 0;
     }
-                    
+
     return M64ERR_SUCCESS;
 }
 
@@ -207,15 +206,15 @@ static unsigned char DataCRC( unsigned char *Data, int iLenght )
 
     while( iByte <= iLenght )
     {
-        int HighBit = ((Remainder & 0x80) != 0);
+        int HighBit = ( ( Remainder & 0x80 ) != 0 );
         Remainder = Remainder << 1;
 
-        Remainder += ( iByte < iLenght && Data[iByte] & (0x80 >> bBit )) ? 1 : 0;
+        Remainder += ( iByte < iLenght && Data[iByte] & ( 0x80 >> bBit ) ) ? 1 : 0;
 
-        Remainder ^= (HighBit) ? 0x85 : 0;
+        Remainder ^= ( HighBit ) ? 0x85 : 0;
 
         bBit++;
-        iByte += bBit/8;
+        iByte += bBit / 8;
         bBit %= 8;
     }
 
@@ -238,104 +237,104 @@ static unsigned char DataCRC( unsigned char *Data, int iLenght )
             initilize controller: 01 03 00 FF FF FF
             read controller:      01 04 01 FF FF FF FF
 *******************************************************************/
-EXPORT void CALL ControllerCommand(int Control, unsigned char *Command)
+EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
 {
     unsigned char *Data = &Command[5];
 
-    if (Control == -1)
+    if( Control == -1 )
         return;
 
-    switch (Command[2])
+    switch( Command[2] )
     {
-        case RD_GETSTATUS:
+    case RD_GETSTATUS:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Get status");
+        DebugMessage(M64MSG_INFO, "Get status");
 #endif
-            break;
-        case RD_READKEYS:
+        break;
+    case RD_READKEYS:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Read keys");
+        DebugMessage(M64MSG_INFO, "Read keys");
 #endif
-            break;
-        case RD_READPAK:
+        break;
+    case RD_READPAK:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Read pak");
+        DebugMessage(M64MSG_INFO, "Read pak");
 #endif
-            if (controller[Control].control->Plugin == PLUGIN_RAW)
-            {
-                unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
+        if( controller[Control].control->Plugin == PLUGIN_RAW )
+        {
+            unsigned int dwAddress = ( Command[3] << 8 ) + ( Command[4] & 0xE0 );
 
-                if(( dwAddress >= 0x8000 ) && ( dwAddress < 0x9000 ) )
-                    memset( Data, 0x80, 32 );
-                else
-                    memset( Data, 0x00, 32 );
+            if( ( dwAddress >= 0x8000 ) && ( dwAddress < 0x9000 ) )
+                memset( Data, 0x80, 32 );
+            else
+                memset( Data, 0x00, 32 );
 
-                Data[32] = DataCRC( Data, 32 );
-            }
-            break;
-        case RD_WRITEPAK:
+            Data[32] = DataCRC( Data, 32 );
+        }
+        break;
+    case RD_WRITEPAK:
 #ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Write pak");
+        DebugMessage(M64MSG_INFO, "Write pak");
 #endif
-            if (controller[Control].control->Plugin == PLUGIN_RAW)
-            {
+        if( controller[Control].control->Plugin == PLUGIN_RAW )
+        {
 
-                DebugMessage(M64MSG_VERBOSE, "RD_WRITEPAK, and control->Plugin is PLUGIN_RAW!");
+            DebugMessage( M64MSG_VERBOSE, "RD_WRITEPAK, and control->Plugin is PLUGIN_RAW!" );
 
-                unsigned int dwAddress = (Command[3] << 8) + (Command[4] & 0xE0);
-              if (dwAddress == PAK_IO_RUMBLE && *Data)
-                    DebugMessage(M64MSG_VERBOSE, "Triggering rumble pack.");
+            unsigned int dwAddress = ( Command[3] << 8 ) + ( Command[4] & 0xE0 );
+            if( dwAddress == PAK_IO_RUMBLE && *Data )
+                DebugMessage( M64MSG_VERBOSE, "Triggering rumble pack." );
 
 //#ifdef ANDROID
-                if( dwAddress == PAK_IO_RUMBLE )
+            if( dwAddress == PAK_IO_RUMBLE )
+            {
+                DebugMessage( M64MSG_VERBOSE, "dwAddress is PAK_IO_RUMBLE!" );
+                if( *Data )
                 {
-                    DebugMessage(M64MSG_VERBOSE, "dwAddress is PAK_IO_RUMBLE!");
-                    if( *Data )
-                    {
-                        DebugMessage(M64MSG_VERBOSE, "*Data exists! Vibrating...");
-                        DebugMessage( M64MSG_INFO, "Android, activating device vibrator" );
-                        // TODO: Implement vibration interface to java
-                        // Android_JNI_Vibrate( 1 );
-                    }
-                    else
-                    {
-                        DebugMessage(M64MSG_VERBOSE, "*Data doesn't exist! Stopping Vibration...");
-                        DebugMessage( M64MSG_INFO, "Android, deactivating device vibrator" );
-                        // TODO: Implement vibration interface to java
-                        // Android_JNI_Vibrate( 0 );
-                    }
+                    DebugMessage( M64MSG_VERBOSE, "*Data exists! Vibrating..." );
+                    DebugMessage( M64MSG_INFO, "Android, activating device vibrator" );
+                    // TODO: Implement vibration interface to java
+                    // Android_JNI_Vibrate( 1 );
                 }
-else
-{
-    DebugMessage(M64MSG_VERBOSE, "dwAddress is not PAK_IO_RUMBLE");
-}
+                else
+                {
+                    DebugMessage( M64MSG_VERBOSE, "*Data doesn't exist! Stopping Vibration..." );
+                    DebugMessage( M64MSG_INFO, "Android, deactivating device vibrator" );
+                    // TODO: Implement vibration interface to java
+                    // Android_JNI_Vibrate( 0 );
+                }
+            }
+            else
+            {
+                DebugMessage( M64MSG_VERBOSE, "dwAddress is not PAK_IO_RUMBLE" );
+            }
 //#endif 
 
-                Data[32] = DataCRC( Data, 32 );
-            }
-
-else
-{
-    DebugMessage(M64MSG_VERBOSE, "RD_WRITEPAK, but control->Plugin not PLUGIN_RAW");
-}
-
-            break;
-        case RD_RESETCONTROLLER:
-#ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Reset controller");
-#endif
-            break;
-        case RD_READEEPROM:
-#ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Read eeprom");
-#endif
-            break;
-        case RD_WRITEEPROM:
-#ifdef _DEBUG
-            DebugMessage(M64MSG_INFO, "Write eeprom");
-#endif
-            break;
+            Data[32] = DataCRC( Data, 32 );
         }
+
+        else
+        {
+            DebugMessage( M64MSG_VERBOSE, "RD_WRITEPAK, but control->Plugin not PLUGIN_RAW" );
+        }
+
+        break;
+    case RD_RESETCONTROLLER:
+#ifdef _DEBUG
+        DebugMessage(M64MSG_INFO, "Reset controller");
+#endif
+        break;
+    case RD_READEEPROM:
+#ifdef _DEBUG
+        DebugMessage(M64MSG_INFO, "Read eeprom");
+#endif
+        break;
+    case RD_WRITEEPROM:
+#ifdef _DEBUG
+        DebugMessage(M64MSG_INFO, "Write eeprom");
+#endif
+        break;
+    }
 }
 
 /******************************************************************
@@ -365,7 +364,7 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     controller[Control].buttons.Value = 0;
 }
 
-static void InitiateRumble(int cntrl)
+static void InitiateRumble( int cntrl )
 {
 }
 
@@ -378,15 +377,15 @@ static void InitiateRumble(int cntrl)
               the emulator to know how to handle each controller.
   output:   none
 *******************************************************************/
-EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
+EXPORT void CALL InitiateControllers( CONTROL_INFO ControlInfo )
 {
     int i;
 
     // reset controllers
-    memset( controller, 0, sizeof( SController ) * 4 );
+    memset( controller, 0, sizeof(SController) * 4 );
     // set our CONTROL struct pointers to the array that was passed in to this function from the core
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
-    for (i = 0; i < 4; i++)
+    for( i = 0; i < 4; i++ )
         controller[i].control = ControlInfo.Controls + i;
 
     for( i = 0; i < 4; i++ )
@@ -395,13 +394,13 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
         controller[i].control->Present = 1;
 
         // test for rumble support for this joystick
-        InitiateRumble(i);
+        InitiateRumble( i );
         // if rumble not supported, switch to mempack
-        if (controller[i].control->Plugin == PLUGIN_RAW && controller[i].event_joystick == 0)
+        if( controller[i].control->Plugin == PLUGIN_RAW && controller[i].event_joystick == 0 )
             controller[i].control->Plugin = PLUGIN_MEMPAK;
     }
 
-    DebugMessage(M64MSG_INFO, "%s version %i.%i.%i initialized.", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION));
+    DebugMessage( M64MSG_INFO, "%s version %i.%i.%i initialized.", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION) );
 }
 
 /******************************************************************
@@ -415,12 +414,12 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
   note:     This function is only needed if the DLL is allowing raw
             data.
 *******************************************************************/
-EXPORT void CALL ReadController(int Control, unsigned char *Command)
+EXPORT void CALL ReadController( int Control, unsigned char *Command )
 {
 #ifdef _DEBUG
     if (Command != NULL)
-        DebugMessage(M64MSG_INFO, "Raw Read (cont=%d):  %02X %02X %02X %02X %02X %02X", Control,
-                     Command[0], Command[1], Command[2], Command[3], Command[4], Command[5]);
+    DebugMessage(M64MSG_INFO, "Raw Read (cont=%d):  %02X %02X %02X %02X %02X %02X", Control,
+            Command[0], Command[1], Command[2], Command[3], Command[4], Command[5]);
 #endif
 }
 
@@ -430,7 +429,7 @@ EXPORT void CALL ReadController(int Control, unsigned char *Command)
   input:    none
   output:   none
 *******************************************************************/
-EXPORT void CALL RomClosed(void)
+EXPORT void CALL RomClosed( void )
 {
 }
 
@@ -441,7 +440,7 @@ EXPORT void CALL RomClosed(void)
   input:    none
   output:   none
 *******************************************************************/
-EXPORT int CALL RomOpen(void)
+EXPORT int CALL RomOpen( void )
 {
     return 1;
 }
@@ -453,7 +452,7 @@ EXPORT int CALL RomOpen(void)
   input:    keymod and keysym of the SDL_KEYDOWN message.
   output:   none
 *******************************************************************/
-EXPORT void CALL SDL_KeyDown(int keymod, int keysym)
+EXPORT void CALL SDL_KeyDown( int keymod, int keysym )
 {
 }
 
@@ -464,6 +463,6 @@ EXPORT void CALL SDL_KeyDown(int keymod, int keysym)
   input:    keymod and keysym of the SDL_KEYUP message.
   output:   none
 *******************************************************************/
-EXPORT void CALL SDL_KeyUp(int keymod, int keysym)
+EXPORT void CALL SDL_KeyUp( int keymod, int keysym )
 {
 }
