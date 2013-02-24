@@ -28,9 +28,6 @@
 #include "m64p_plugin.h"
 #include "m64p_config.h"
 
-#define DEVICE_AUTO         (-1)
-#define DEVICE_NOT_JOYSTICK (-2)
-
 // Some stuff from n-rage plugin
 #define RD_GETSTATUS        0x00        // get status
 #define RD_READKEYS         0x01        // read button values
@@ -66,35 +63,8 @@ enum EButton
 
 typedef struct
 {
-    int button;                     // button index; -1 if notassigned
-    int axis, axis_dir;             // aixs + direction (i.e. 0, 1 = X Axis +; 0, -1 = X Axis -); -1 if notassigned
-    int axis_deadzone;              // -1 for default, or >= 0 for custom value
-    int hat, hat_pos;               // hat + hat position; -1 if not assigned
-    int mouse;                      // mouse button
-} SButtonMap;
-
-typedef struct
-{
-    int button_a, button_b;         // up/down or left/right; -1 if not assigned
-    int axis_a, axis_b;             // axis index; -1 if not assigned
-    int axis_dir_a, axis_dir_b;     // direction (1 = X+, 0, -1 = X-)
-    int hat, hat_pos_a, hat_pos_b;  // hat + hat position up/down and left/right; -1 if not assigned
-} SAxisMap;
-
-typedef struct
-{
     CONTROL *control;               // pointer to CONTROL struct in Core library
     BUTTONS buttons;
-
-    // mappings
-    SButtonMap button[16];          // 14 buttons; in the order of EButton + mempak/rumblepak switches
-    SAxisMap axis[2];               // 2 axis
-    int device;                     // joystick device; -1 = keyboard; -2 = none
-    int mouse;                      // mouse enabled: 0 = no; 1 = yes
-    int event_joystick;             // the /dev/input/eventX device for force feeback
-    int axis_deadzone[2];           // minimum absolute value before analog movement is recognized
-    int axis_peak[2];               // highest analog value returned by SDL, used for scaling
-    float mouse_sens[2];            // mouse sensitivity
 } SController;
 
 /* global data definitions */

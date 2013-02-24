@@ -105,7 +105,7 @@ static CONTROL temp_core_controlinfo[4];
 /* Mupen64Plus plugin functions */
 EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle CoreLibHandle, void *Context, void (*DebugCallback)( void *, int, const char * ) )
 {
-    int i, ConfigAPIVersion, DebugAPIVersion, VidextAPIVersion;
+    int i;
 
     if( l_PluginInit )
         return M64ERR_ALREADY_INIT;
@@ -323,11 +323,6 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
 *******************************************************************/
 EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
-    static int mousex_residual = 0;
-    static int mousey_residual = 0;
-    int b, axis_val;
-    unsigned char mstate;
-
 ///// paulscode, handle input from the virtual gamepad
     doVirtualGamePad();
 ////
@@ -336,10 +331,6 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     *Keys = controller[Control].buttons;
 
     controller[Control].buttons.Value = 0;
-}
-
-static void InitiateRumble( int cntrl )
-{
 }
 
 /******************************************************************
@@ -365,13 +356,12 @@ EXPORT void CALL InitiateControllers( CONTROL_INFO ControlInfo )
     for( i = 0; i < 4; i++ )
     {
         // plug in all controllers
+        // TODO: Obtain this from JNI
         controller[i].control->Present = 1;
 
         // test for rumble support for this joystick
-        InitiateRumble( i );
         // if rumble not supported, switch to mempack
-        if( controller[i].control->Plugin == PLUGIN_RAW && controller[i].event_joystick == 0 )
-            controller[i].control->Plugin = PLUGIN_MEMPAK;
+        // TODO: Re-implement if needed
     }
 
     DebugMessage( M64MSG_INFO, "%s version %i.%i.%i initialized.", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION) );
