@@ -233,9 +233,6 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     for (i = 0; i < 4; i++)
         controller[i].control = temp_core_controlinfo + i;
 
-    /* read plugin config from core config database, auto-config if necessary and update core database */
-    load_configuration(0);
-
     l_PluginInit = 1;
     return M64ERR_SUCCESS;
 }
@@ -865,9 +862,6 @@ EXPORT void CALL InitiateControllers(CONTROL_INFO ControlInfo)
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
     for (i = 0; i < 4; i++)
         controller[i].control = ControlInfo.Controls + i;
-
-    // read configuration
-    load_configuration(1);
 
     for( i = 0; i < 4; i++ )
     {

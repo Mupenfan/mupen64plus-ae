@@ -15,8 +15,6 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(SRCDIR)
 
 LOCAL_SRC_FILES := \
 	$(SRCDIR)/plugin.c \
-	$(SRCDIR)/autoconfig.c \
-	$(SRCDIR)/config.c \
 	$(SRCDIR)/osal_dynamiclib_unix.c
 
 LOCAL_CFLAGS := -DNO_ASM -DANDROID
