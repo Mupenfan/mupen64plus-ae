@@ -4,14 +4,12 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := input-android
 #LOCAL_ARM_MODE := arm
-SRCDIR := $(shell readlink $(LOCAL_PATH)/src)src
 
 CORE_PATH := ../core
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(CORE_PATH)/src/api
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(SRCDIR)
 
-LOCAL_SRC_FILES := $(SRCDIR)/plugin.c
+LOCAL_SRC_FILES := plugin.c
 
 LOCAL_CFLAGS := -DNO_ASM -DANDROID
 

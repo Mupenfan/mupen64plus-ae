@@ -1,25 +1,23 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-input-android - plugin.c                                  *
- *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
- *   Copyright (C) 2008-2011 Richard Goedeken                              *
- *   Copyright (C) 2008 Tillin9                                            *
- *   Copyright (C) 2002 Blight                                             *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/**
+ * Mupen64PlusAE, an N64 emulator for the Android platform
+ *
+ * Copyright (C) 2013 Paul Lamb
+ *
+ * This file is part of Mupen64PlusAE.
+ *
+ * Mupen64PlusAE is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Mupen64PlusAE is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with Mupen64PlusAE. If
+ * not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors: littleguy77, Paul Lamb
+ */
 
 #include <string.h>
 #include <jni.h>
@@ -27,12 +25,13 @@
 
 #include "m64p_plugin.h"
 
+// Internal macros
 #define PLUGIN_NAME                 "Mupen64Plus Android Input Plugin"
 #define PLUGIN_VERSION              0x010000
 #define INPUT_PLUGIN_API_VERSION    0x020000
 #define CONFIG_API_VERSION          0x020000
 
-// Internal enum definitions
+// Internal enums
 enum EButton
 {
     R_DPAD = 0,
@@ -56,25 +55,14 @@ enum EButton
     NUM_BUTTONS
 };
 
-// Internal struct definitions
-typedef struct
-{
-    CONTROL *control;
-    BUTTONS buttons;
-} SController;
-
-// Global variable definitions
-SController controller[4];
-
-// Internal variable definitions
+// Internal variables
 static void (*_DebugCallback)( void *, int, const char * ) = NULL;
 static void *_debugCallContext = NULL;
 static int _pluginInitialized = 0;
-static CONTROL _core_controlinfo_storage[4];
-unsigned char _androidButtonState[4][16];
-signed char _androidAnalogState[4][2];
+static unsigned char _androidButtonState[4][16];
+static signed char _androidAnalogState[4][2];
 
-// Internal constant definitions
+// Internal constants
 static const unsigned short const BUTTON_BITS[] =
 {
     0x0001,  // R_DPAD
@@ -127,12 +115,14 @@ void DebugMessage( int level, const char *message, ... )
     char msgbuf[1024];
     va_list args;
 
-    if( _DebugCallback == NULL )
-        _DebugCallback = DefaultDebugCallback;
+    if( _debugCallContext == NULL )
+        return;
 
     va_start( args, message );
     vsprintf( msgbuf, message, args );
 
+    if( _DebugCallback == NULL )
+        _DebugCallback = DefaultDebugCallback;
     ( *_DebugCallback )( _debugCallContext, level, msgbuf );
 
     va_end( args );
@@ -173,15 +163,6 @@ EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle coreLibHandle, void *co
 
     _DebugCallback = DebugCallback;
     _debugCallContext = context;
-
-    // Reset the controller data structure
-    memset(controller, 0, sizeof(SController) * 4);
-
-    // Define the storage location for controller data
-    int i;
-    for( i = 0; i < 4; i++ )
-        controller[i].control = _core_controlinfo_storage + i;
-
     _pluginInitialized = 1;
     return M64ERR_SUCCESS;
 }
@@ -207,45 +188,37 @@ EXPORT void CALL InitiateControllers( CONTROL_INFO controlInfo )
 {
     DebugMessage( M64MSG_INFO, "InitiateControllers" );
 
-    // Reset controllers
-    memset( controller, 0, sizeof(SController) * 4 );
-
     int i;
     for( i = 0; i < 4; i++ )
     {
-        // Record pointers to the controller data
-        controller[i].control = controlInfo.Controls + i;
-
-        // Plug in all controllers
-        // TODO: Obtain this from JNI
-        controller[i].control->Present = 1;
+        // Configure each controller
+        // TODO: Obtain this through JNI
+        controlInfo.Controls->Present = 1;
+        controlInfo.Controls->Plugin = 2;
+        controlInfo.Controls->RawData = 0;
     }
 }
 
 EXPORT void CALL GetKeys( int controllerNum, BUTTONS *keys )
 {
-    int b, c;
-    for( c = 0; c < 4; c++ )
-    {
-        // Set the button bits
-        for( b = 0; b < 16; b++ )
-        {
-            if( _androidButtonState[c][b] )
-                controller[c].buttons.Value |= BUTTON_BITS[b];
-        }
+    // Reset the controller state
+    keys->Value = 0;
 
-        // Set the analog bytes
-        if( _androidAnalogState[c][0] || _androidAnalogState[c][1] )
-        {
-            // only report the stick position if it isn't back at the center
-            controller[c].buttons.X_AXIS = _androidAnalogState[c][0];
-            controller[c].buttons.Y_AXIS = _androidAnalogState[c][1];
-        }
+    // Set the button bits
+    int b;
+    for( b = 0; b < 16; b++ )
+    {
+        if( _androidButtonState[controllerNum][b] )
+            keys->Value |= BUTTON_BITS[b];
     }
 
-    // Assign the output data
-    *keys = controller[controllerNum].buttons;
-    controller[controllerNum].buttons.Value = 0;
+    // Set the analog bytes
+    if( _androidAnalogState[controllerNum][0] || _androidAnalogState[controllerNum][1] )
+    {
+        // Only report non-zero analog states
+        keys->X_AXIS = _androidAnalogState[controllerNum][0];
+        keys->Y_AXIS = _androidAnalogState[controllerNum][1];
+    }
 }
 
 EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
