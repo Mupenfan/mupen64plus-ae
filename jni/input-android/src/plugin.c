@@ -61,27 +61,22 @@ static unsigned short button_bits[] =
 //// paulscode, for the phone vibrator:
 extern void Android_JNI_Vibrate( int active );
 
-//// paulscode, for the virtual gamepad:
-unsigned char virtualGamePadButtonState[4][16];
-signed char virtualGamePadAxisState[4][2];
+unsigned char androidButtonState[4][16];
+signed char androidAnalogState[4][2];
 JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_updateVirtualGamePadStates(
         JNIEnv* env, jclass jcls, jint controllerNum, jbooleanArray mp64pButtons, jint mp64pXAxis, jint mp64pYAxis )
 {
     jboolean *elements = (*env)->GetBooleanArrayElements( env, mp64pButtons, NULL );
     int b;
-
     for( b = 0; b < 16; b++ )
     {
-        virtualGamePadButtonState[controllerNum][b] = elements[b];
+        androidButtonState[controllerNum][b] = elements[b];
     }
     (*env)->ReleaseBooleanArrayElements( env, mp64pButtons, elements, 0 );
 
-    // from the N64 func ref: The 3D Stick data is of type signed char and in
-    // the range between 80 and -80. (32768 / 409 = ~80.1)
-    virtualGamePadAxisState[controllerNum][0] = (signed char) ((int) mp64pXAxis);
-    virtualGamePadAxisState[controllerNum][1] = (signed char) ((int) mp64pYAxis);
+    androidAnalogState[controllerNum][0] = (signed char) ((int) mp64pXAxis);
+    androidAnalogState[controllerNum][1] = (signed char) ((int) mp64pYAxis);
 }
-////
 
 /* Global functions */
 void DebugMessage( int level, const char *message, ... )
@@ -115,15 +110,12 @@ EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle CoreLibHandle, void *Co
     l_DebugCallContext = Context;
 
     /* reset controllers */
-    memset( controller, 0, sizeof(SController) * 4 );
+    memset(controller, 0, sizeof(SController) * 4);
     /* set CONTROL struct pointers to the temporary static array */
     /* this small struct is used to tell the core whether each controller is plugged in, and what type of pak is connected */
     /* we only need it so that we can call load_configuration below, to auto-config for a GUI front-end */
-    for( i = 0; i < 4; i++ )
-    {
+    for (i = 0; i < 4; i++)
         controller[i].control = temp_core_controlinfo + i;
-        controller[i].control->Present = 1;
-    }
 
     l_PluginInit = 1;
     return M64ERR_SUCCESS;
@@ -306,16 +298,16 @@ EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
     {
         for( b = 0; b < 16; b++ )
         {
-            if( virtualGamePadButtonState[c][b] )
+            if( androidButtonState[c][b] )
                 controller[c].buttons.Value |= button_bits[b];
         }
         // from the N64 func ref: The 3D Stick data is of type signed char and in
         // the range between 80 and -80. (32768 / 409 = ~80.1)
-        if( virtualGamePadAxisState[c][0] || virtualGamePadAxisState[c][1] )
+        if( androidAnalogState[c][0] || androidAnalogState[c][1] )
         {
             // only report the stick position if it isn't back at the center
-            controller[c].buttons.X_AXIS = virtualGamePadAxisState[c][0];
-            controller[c].buttons.Y_AXIS = virtualGamePadAxisState[c][1];
+            controller[c].buttons.X_AXIS = androidAnalogState[c][0];
+            controller[c].buttons.Y_AXIS = androidAnalogState[c][1];
         }
     }
 
