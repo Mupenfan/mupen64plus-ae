@@ -33,7 +33,8 @@
 // Internal variables
 static int _pluginInitialized = 0;
 static unsigned char _androidButtonState[4][16];
-static signed char _androidAnalogState[4][2];
+static signed char _androidAnalogX[4];
+static signed char _androidAnalogY[4];
 
 // Internal constants
 static const unsigned short const BUTTON_BITS[] =
@@ -170,20 +171,16 @@ EXPORT void CALL GetKeys( int controllerNum, BUTTONS *keys )
     }
 
     // Set the analog bytes
-    if( _androidAnalogState[controllerNum][0] || _androidAnalogState[controllerNum][1] )
-    {
-        // Only report non-zero analog states
-        keys->X_AXIS = _androidAnalogState[controllerNum][0];
-        keys->Y_AXIS = _androidAnalogState[controllerNum][1];
-    }
+    keys->X_AXIS = _androidAnalogX[controllerNum];
+    keys->Y_AXIS = _androidAnalogY[controllerNum];
 }
 
-EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
+EXPORT void CALL ControllerCommand( int control, unsigned char *command )
 {
     DebugMessage( M64MSG_INFO, "ControllerCommand" );
 }
 
-EXPORT void CALL ReadController( int Control, unsigned char *Command )
+EXPORT void CALL ReadController( int control, unsigned char *command )
 {
     DebugMessage( M64MSG_VERBOSE, "ReadController" );
 }
@@ -220,6 +217,6 @@ JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_
     }
     (*env)->ReleaseBooleanArrayElements( env, mp64pButtons, elements, 0 );
 
-    _androidAnalogState[controllerNum][0] = (signed char) ((int) mp64pXAxis);
-    _androidAnalogState[controllerNum][1] = (signed char) ((int) mp64pYAxis);
+    _androidAnalogX[controllerNum] = (signed char) ( (int) mp64pXAxis );
+    _androidAnalogY[controllerNum] = (signed char) ( (int) mp64pYAxis );
 }
