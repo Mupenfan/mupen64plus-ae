@@ -29,35 +29,8 @@
 #define PLUGIN_NAME                 "Mupen64Plus Android Input Plugin"
 #define PLUGIN_VERSION              0x010000
 #define INPUT_PLUGIN_API_VERSION    0x020000
-#define CONFIG_API_VERSION          0x020000
-
-// Internal enums
-enum EButton
-{
-    R_DPAD = 0,
-    L_DPAD,
-    D_DPAD,
-    U_DPAD,
-    START_BUTTON,
-    Z_TRIG,
-    B_BUTTON,
-    A_BUTTON,
-    R_CBUTTON,
-    L_CBUTTON,
-    D_CBUTTON,
-    U_CBUTTON,
-    R_TRIG,
-    L_TRIG,
-    MEMPAK,
-    RUMBLEPAK,
-    X_AXIS,
-    Y_AXIS,
-    NUM_BUTTONS
-};
 
 // Internal variables
-static void (*_DebugCallback)( void *, int, const char * ) = NULL;
-static void *_debugCallContext = NULL;
 static int _pluginInitialized = 0;
 static unsigned char _androidButtonState[4][16];
 static signed char _androidAnalogState[4][2];
@@ -87,45 +60,33 @@ static const unsigned short const BUTTON_BITS[] =
 // Mupen64Plus debug function definitions
 //*****************************************************************************
 
-void DefaultDebugCallback( void *context, int level, const char *message )
-{
-    switch( level )
-    {
-    case M64MSG_ERROR:
-        __android_log_print( ANDROID_LOG_ERROR, "input-android", message );
-        break;
-    case M64MSG_WARNING:
-        __android_log_print( ANDROID_LOG_WARN, "input-android", message );
-        break;
-    case M64MSG_INFO:
-        __android_log_print( ANDROID_LOG_INFO, "input-android", message );
-        break;
-    case M64MSG_STATUS:
-        __android_log_print( ANDROID_LOG_DEBUG, "input-android", message );
-        break;
-    case M64MSG_VERBOSE:
-    default:
-        //__android_log_print( ANDROID_LOG_VERBOSE, "input-android", message );
-        break;
-    }
-}
-
 void DebugMessage( int level, const char *message, ... )
 {
     char msgbuf[1024];
     va_list args;
-
-    if( _debugCallContext == NULL )
-        return;
-
     va_start( args, message );
     vsprintf( msgbuf, message, args );
-
-    if( _DebugCallback == NULL )
-        _DebugCallback = DefaultDebugCallback;
-    ( *_DebugCallback )( _debugCallContext, level, msgbuf );
-
     va_end( args );
+
+    switch( level )
+    {
+    case M64MSG_ERROR:
+        __android_log_print( ANDROID_LOG_ERROR, "input-android", msgbuf );
+        break;
+    case M64MSG_WARNING:
+        __android_log_print( ANDROID_LOG_WARN, "input-android", msgbuf );
+        break;
+    case M64MSG_INFO:
+        __android_log_print( ANDROID_LOG_INFO, "input-android", msgbuf );
+        break;
+    case M64MSG_STATUS:
+        __android_log_print( ANDROID_LOG_DEBUG, "input-android", msgbuf );
+        break;
+    case M64MSG_VERBOSE:
+    default:
+        //__android_log_print( ANDROID_LOG_VERBOSE, "input-android", msgbuf );
+        break;
+    }
 }
 
 //*****************************************************************************
@@ -161,8 +122,6 @@ EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle coreLibHandle, void *co
     if( _pluginInitialized )
         return M64ERR_ALREADY_INIT;
 
-    _DebugCallback = DebugCallback;
-    _debugCallContext = context;
     _pluginInitialized = 1;
     return M64ERR_SUCCESS;
 }
@@ -174,8 +133,6 @@ EXPORT m64p_error CALL PluginShutdown()
     if( !_pluginInitialized )
         return M64ERR_NOT_INIT;
 
-    _DebugCallback = NULL;
-    _debugCallContext = NULL;
     _pluginInitialized = 0;
     return M64ERR_SUCCESS;
 }
