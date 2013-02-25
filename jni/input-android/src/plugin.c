@@ -21,23 +21,30 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include <string.h>                 // memset, NULL
-
-#define M64P_PLUGIN_PROTOTYPES 1
+#include <string.h> // memset, NULL
+#include <jni.h>
 
 #include "plugin.h"
 #include "version.h"
 
-#include <jni.h>
+// External function declarations
+extern void Android_JNI_Vibrate( int active );
 
-/* global data definitions */
-SController controller[4];   // 4 controllers
+// Internal function declarations
+static unsigned char DataCRC( unsigned char*, int );
 
-/* static data definitions */
+// Global variable definitions
+SController controller[4];
+
+// Internal variable definitions
 static void (*l_DebugCallback)( void *, int, const char * ) = NULL;
 static void *l_DebugCallContext = NULL;
 static int l_PluginInit = 0;
+static CONTROL temp_core_controlinfo[4];
+unsigned char androidButtonState[4][16];
+signed char androidAnalogState[4][2];
 
+// Internal constant definitions
 static unsigned short button_bits[] =
 {
     0x0001,  // R_DPAD
@@ -58,27 +65,10 @@ static unsigned short button_bits[] =
     0x8000   // Rumblepak switch
 };
 
-//// paulscode, for the phone vibrator:
-extern void Android_JNI_Vibrate( int active );
+//*****************************************************************************
+// Mupen64Plus debug function definitions
+//*****************************************************************************
 
-unsigned char androidButtonState[4][16];
-signed char androidAnalogState[4][2];
-JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_updateVirtualGamePadStates(
-        JNIEnv* env, jclass jcls, jint controllerNum, jbooleanArray mp64pButtons, jint mp64pXAxis, jint mp64pYAxis )
-{
-    jboolean *elements = (*env)->GetBooleanArrayElements( env, mp64pButtons, NULL );
-    int b;
-    for( b = 0; b < 16; b++ )
-    {
-        androidButtonState[controllerNum][b] = elements[b];
-    }
-    (*env)->ReleaseBooleanArrayElements( env, mp64pButtons, elements, 0 );
-
-    androidAnalogState[controllerNum][0] = (signed char) ((int) mp64pXAxis);
-    androidAnalogState[controllerNum][1] = (signed char) ((int) mp64pYAxis);
-}
-
-/* Global functions */
 void DebugMessage( int level, const char *message, ... )
 {
     char msgbuf[1024];
@@ -95,9 +85,33 @@ void DebugMessage( int level, const char *message, ... )
     va_end( args );
 }
 
-static CONTROL temp_core_controlinfo[4];
+//*****************************************************************************
+// Mupen64Plus common plugin function definitions
+//*****************************************************************************
 
-/* Mupen64Plus plugin functions */
+EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities )
+{
+    /* set version info */
+    if( PluginType != NULL )
+        *PluginType = M64PLUGIN_INPUT;
+
+    if( PluginVersion != NULL )
+        *PluginVersion = PLUGIN_VERSION;
+
+    if( APIVersion != NULL )
+        *APIVersion = INPUT_PLUGIN_API_VERSION;
+
+    if( PluginNamePtr != NULL )
+        *PluginNamePtr = PLUGIN_NAME;
+
+    if( Capabilities != NULL )
+    {
+        *Capabilities = 0;
+    }
+
+    return M64ERR_SUCCESS;
+}
+
 EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle CoreLibHandle, void *Context, void (*DebugCallback)( void *, int, const char * ) )
 {
     int i;
@@ -134,51 +148,77 @@ EXPORT m64p_error CALL PluginShutdown( void )
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities )
+//*****************************************************************************
+// Mupen64Plus input plugin function definitions
+//*****************************************************************************
+
+/******************************************************************
+  Function: InitiateControllers
+  Purpose:  This function initialises how each of the controllers
+            should be handled.
+  input:    - The handle to the main window.
+            - A controller structure that needs to be filled for
+              the emulator to know how to handle each controller.
+  output:   none
+*******************************************************************/
+
+EXPORT void CALL InitiateControllers( CONTROL_INFO ControlInfo )
 {
-    /* set version info */
-    if( PluginType != NULL )
-        *PluginType = M64PLUGIN_INPUT;
+    int i;
 
-    if( PluginVersion != NULL )
-        *PluginVersion = PLUGIN_VERSION;
+    // reset controllers
+    memset( controller, 0, sizeof(SController) * 4 );
+    // set our CONTROL struct pointers to the array that was passed in to this function from the core
+    // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
+    for( i = 0; i < 4; i++ )
+        controller[i].control = ControlInfo.Controls + i;
 
-    if( APIVersion != NULL )
-        *APIVersion = INPUT_PLUGIN_API_VERSION;
-
-    if( PluginNamePtr != NULL )
-        *PluginNamePtr = PLUGIN_NAME;
-
-    if( Capabilities != NULL )
+    for( i = 0; i < 4; i++ )
     {
-        *Capabilities = 0;
+        // plug in all controllers
+        // TODO: Obtain this from JNI
+        controller[i].control->Present = 1;
+
+        // test for rumble support for this joystick
+        // if rumble not supported, switch to mempack
+        // TODO: Re-implement if needed
     }
 
-    return M64ERR_SUCCESS;
+    DebugMessage( M64MSG_INFO, "%s version %i.%i.%i initialized.", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION) );
 }
 
-static unsigned char DataCRC( unsigned char *Data, int iLenght )
+/******************************************************************
+  Function: GetKeys
+  Purpose:  To get the current state of the controllers buttons.
+  input:    - Controller Number (0 to 3)
+            - A pointer to a BUTTONS structure to be filled with
+            the controller state.
+  output:   none
+*******************************************************************/
+EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
 {
-    unsigned char Remainder = Data[0];
-
-    int iByte = 1;
-    unsigned char bBit = 0;
-
-    while( iByte <= iLenght )
+    int b, c;
+    for( c = 0; c < 4; c++ )
     {
-        int HighBit = ( ( Remainder & 0x80 ) != 0 );
-        Remainder = Remainder << 1;
-
-        Remainder += ( iByte < iLenght && Data[iByte] & ( 0x80 >> bBit ) ) ? 1 : 0;
-
-        Remainder ^= ( HighBit ) ? 0x85 : 0;
-
-        bBit++;
-        iByte += bBit / 8;
-        bBit %= 8;
+        for( b = 0; b < 16; b++ )
+        {
+            if( androidButtonState[c][b] )
+                controller[c].buttons.Value |= button_bits[b];
+        }
+        // from the N64 func ref: The 3D Stick data is of type signed char and in
+        // the range between 80 and -80. (32768 / 409 = ~80.1)
+        if( androidAnalogState[c][0] || androidAnalogState[c][1] )
+        {
+            // only report the stick position if it isn't back at the center
+            controller[c].buttons.X_AXIS = androidAnalogState[c][0];
+            controller[c].buttons.Y_AXIS = androidAnalogState[c][1];
+        }
     }
 
-    return Remainder;
+    DebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
+    *Keys = controller[Control].buttons;
+
+    controller[Control].buttons.Value = 0;
 }
 
 /******************************************************************
@@ -283,132 +323,66 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
     }
 }
 
-/******************************************************************
-  Function: GetKeys
-  Purpose:  To get the current state of the controllers buttons.
-  input:    - Controller Number (0 to 3)
-            - A pointer to a BUTTONS structure to be filled with
-            the controller state.
-  output:   none
-*******************************************************************/
-EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
-{
-    int b, c;
-    for( c = 0; c < 4; c++ )
-    {
-        for( b = 0; b < 16; b++ )
-        {
-            if( androidButtonState[c][b] )
-                controller[c].buttons.Value |= button_bits[b];
-        }
-        // from the N64 func ref: The 3D Stick data is of type signed char and in
-        // the range between 80 and -80. (32768 / 409 = ~80.1)
-        if( androidAnalogState[c][0] || androidAnalogState[c][1] )
-        {
-            // only report the stick position if it isn't back at the center
-            controller[c].buttons.X_AXIS = androidAnalogState[c][0];
-            controller[c].buttons.Y_AXIS = androidAnalogState[c][1];
-        }
-    }
-
-    DebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
-    *Keys = controller[Control].buttons;
-
-    controller[Control].buttons.Value = 0;
-}
-
-/******************************************************************
-  Function: InitiateControllers
-  Purpose:  This function initialises how each of the controllers
-            should be handled.
-  input:    - The handle to the main window.
-            - A controller structure that needs to be filled for
-              the emulator to know how to handle each controller.
-  output:   none
-*******************************************************************/
-EXPORT void CALL InitiateControllers( CONTROL_INFO ControlInfo )
-{
-    int i;
-
-    // reset controllers
-    memset( controller, 0, sizeof(SController) * 4 );
-    // set our CONTROL struct pointers to the array that was passed in to this function from the core
-    // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
-    for( i = 0; i < 4; i++ )
-        controller[i].control = ControlInfo.Controls + i;
-
-    for( i = 0; i < 4; i++ )
-    {
-        // plug in all controllers
-        // TODO: Obtain this from JNI
-        controller[i].control->Present = 1;
-
-        // test for rumble support for this joystick
-        // if rumble not supported, switch to mempack
-        // TODO: Re-implement if needed
-    }
-
-    DebugMessage( M64MSG_INFO, "%s version %i.%i.%i initialized.", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION) );
-}
-
-/******************************************************************
-  Function: ReadController
-  Purpose:  To process the raw data in the pif ram that is about to
-            be read.
-  input:    - Controller Number (0 to 3) and -1 signalling end of
-              processing the pif ram.
-            - Pointer of data to be processed.
-  output:   none
-  note:     This function is only needed if the DLL is allowing raw
-            data.
-*******************************************************************/
 EXPORT void CALL ReadController( int Control, unsigned char *Command )
 {
-    if (Command != NULL)
-        DebugMessage(M64MSG_VERBOSE, "Raw Read (cont=%d):  %02X %02X %02X %02X %02X %02X", Control,
-            Command[0], Command[1], Command[2], Command[3], Command[4], Command[5]);
 }
 
-/******************************************************************
-  Function: RomClosed
-  Purpose:  This function is called when a rom is closed.
-  input:    none
-  output:   none
-*******************************************************************/
 EXPORT void CALL RomClosed( void )
 {
 }
 
-/******************************************************************
-  Function: RomOpen
-  Purpose:  This function is called when a rom is open. (from the
-            emulation thread)
-  input:    none
-  output:   none
-*******************************************************************/
 EXPORT int CALL RomOpen( void )
 {
     return 1;
 }
 
-/******************************************************************
-  Function: SDL_KeyDown
-  Purpose:  To pass the SDL_KeyDown message from the emulator to the
-            plugin.
-  input:    keymod and keysym of the SDL_KEYDOWN message.
-  output:   none
-*******************************************************************/
 EXPORT void CALL SDL_KeyDown( int keymod, int keysym )
 {
 }
 
-/******************************************************************
-  Function: SDL_KeyUp
-  Purpose:  To pass the SDL_KeyUp message from the emulator to the
-            plugin.
-  input:    keymod and keysym of the SDL_KEYUP message.
-  output:   none
-*******************************************************************/
 EXPORT void CALL SDL_KeyUp( int keymod, int keysym )
 {
+}
+
+//*****************************************************************************
+// Internal function definitions
+//*****************************************************************************
+
+static unsigned char DataCRC( unsigned char *Data, int iLenght )
+{
+    unsigned char Remainder = Data[0];
+
+    int iByte = 1;
+    unsigned char bBit = 0;
+
+    while( iByte <= iLenght )
+    {
+        int HighBit = ( ( Remainder & 0x80 ) != 0 );
+        Remainder = Remainder << 1;
+
+        Remainder += ( iByte < iLenght && Data[iByte] & ( 0x80 >> bBit ) ) ? 1 : 0;
+
+        Remainder ^= ( HighBit ) ? 0x85 : 0;
+
+        bBit++;
+        iByte += bBit / 8;
+        bBit %= 8;
+    }
+
+    return Remainder;
+}
+
+JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_updateVirtualGamePadStates(
+        JNIEnv* env, jclass jcls, jint controllerNum, jbooleanArray mp64pButtons, jint mp64pXAxis, jint mp64pYAxis )
+{
+    jboolean *elements = (*env)->GetBooleanArrayElements( env, mp64pButtons, NULL );
+    int b;
+    for( b = 0; b < 16; b++ )
+    {
+        androidButtonState[controllerNum][b] = elements[b];
+    }
+    (*env)->ReleaseBooleanArrayElements( env, mp64pButtons, elements, 0 );
+
+    androidAnalogState[controllerNum][0] = (signed char) ((int) mp64pXAxis);
+    androidAnalogState[controllerNum][1] = (signed char) ((int) mp64pYAxis);
 }

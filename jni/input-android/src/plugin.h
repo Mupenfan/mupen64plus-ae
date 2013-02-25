@@ -24,7 +24,6 @@
 #ifndef __PLUGIN_H__
 #define __PLUGIN_H__
 
-#define M64P_PLUGIN_PROTOTYPES 1
 #include "m64p_plugin.h"
 #include "m64p_config.h"
 
@@ -63,14 +62,14 @@ enum EButton
 
 typedef struct
 {
-    CONTROL *control;               // pointer to CONTROL struct in Core library
+    CONTROL *control;
     BUTTONS buttons;
 } SController;
 
-/* global data definitions */
-extern SController controller[4];   // 4 controllers
+// Global data declarations
+extern SController controller[4];
 
-/* global function definitions */
+// Global function declarations
 extern void DebugMessage( int level, const char *message, ... );
 
 #endif // __PLUGIN_H__
