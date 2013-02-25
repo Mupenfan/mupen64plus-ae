@@ -25,11 +25,43 @@
 #include <jni.h>
 #include <android/log.h>
 
-#include "plugin.h"
-#include "version.h"
+#include "m64p_plugin.h"
 
-// Internal function declarations
-static unsigned char DataCRC( unsigned char*, int );
+#define PLUGIN_NAME                 "Mupen64Plus Android Input Plugin"
+#define PLUGIN_VERSION              0x010000
+#define INPUT_PLUGIN_API_VERSION    0x020000
+#define CONFIG_API_VERSION          0x020000
+
+// Internal enum definitions
+enum EButton
+{
+    R_DPAD = 0,
+    L_DPAD,
+    D_DPAD,
+    U_DPAD,
+    START_BUTTON,
+    Z_TRIG,
+    B_BUTTON,
+    A_BUTTON,
+    R_CBUTTON,
+    L_CBUTTON,
+    D_CBUTTON,
+    U_CBUTTON,
+    R_TRIG,
+    L_TRIG,
+    MEMPAK,
+    RUMBLEPAK,
+    X_AXIS,
+    Y_AXIS,
+    NUM_BUTTONS
+};
+
+// Internal struct definitions
+typedef struct
+{
+    CONTROL *control;
+    BUTTONS buttons;
+} SController;
 
 // Global variable definitions
 SController controller[4];
@@ -244,32 +276,8 @@ EXPORT void CALL SDL_KeyUp( int keymod, int keysym )
 }
 
 //*****************************************************************************
-// Internal function definitions
+// JNI exported function definitions
 //*****************************************************************************
-
-static unsigned char DataCRC( unsigned char *data, int length )
-{
-    unsigned char remainder = data[0];
-
-    int byteCount = 1;
-    unsigned char bBit = 0;
-
-    while( byteCount <= length )
-    {
-        int highBit = ( ( remainder & 0x80 ) != 0 );
-        remainder = remainder << 1;
-
-        remainder += ( byteCount < length && data[byteCount] & ( 0x80 >> bBit ) ) ? 1 : 0;
-
-        remainder ^= ( highBit ) ? 0x85 : 0;
-
-        bBit++;
-        byteCount += bBit / 8;
-        bBit %= 8;
-    }
-
-    return remainder;
-}
 
 JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_updateVirtualGamePadStates(
         JNIEnv* env, jclass jcls, jint controllerNum, jbooleanArray mp64pButtons, jint mp64pXAxis, jint mp64pYAxis )
