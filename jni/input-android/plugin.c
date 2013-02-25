@@ -185,7 +185,7 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
 
 EXPORT void CALL ReadController( int Control, unsigned char *Command )
 {
-    DebugMessage( M64MSG_INFO, "ReadController" );
+    DebugMessage( M64MSG_VERBOSE, "ReadController" );
 }
 
 EXPORT void CALL RomClosed()
