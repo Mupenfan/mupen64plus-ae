@@ -23,6 +23,7 @@
 
 #include <string.h> // memset, NULL
 #include <jni.h>
+#include <android/log.h>
 
 #include "plugin.h"
 #include "version.h"
@@ -37,15 +38,15 @@ static unsigned char DataCRC( unsigned char*, int );
 SController controller[4];
 
 // Internal variable definitions
-static void (*l_DebugCallback)( void *, int, const char * ) = NULL;
-static void *l_DebugCallContext = NULL;
-static int l_PluginInit = 0;
-static CONTROL temp_core_controlinfo[4];
-unsigned char androidButtonState[4][16];
-signed char androidAnalogState[4][2];
+static void (*_DebugCallback)( void *, int, const char * ) = NULL;
+static void *_debugCallContext = NULL;
+static int _pluginInitialized = 0;
+static CONTROL _temp_core_controlinfo[4];
+unsigned char _androidButtonState[4][16];
+signed char _androidAnalogState[4][2];
 
 // Internal constant definitions
-static unsigned short button_bits[] =
+static const unsigned short const BUTTON_BITS[] =
 {
     0x0001,  // R_DPAD
     0x0002,  // L_DPAD
@@ -69,18 +70,41 @@ static unsigned short button_bits[] =
 // Mupen64Plus debug function definitions
 //*****************************************************************************
 
+void DebugCallback(void *context, int level, const char *message)
+{
+    switch( level )
+    {
+    case M64MSG_ERROR:
+        __android_log_print( ANDROID_LOG_ERROR, "input-android", message );
+        break;
+    case M64MSG_WARNING:
+        __android_log_print( ANDROID_LOG_WARN, "input-android", message );
+        break;
+    case M64MSG_INFO:
+        __android_log_print( ANDROID_LOG_INFO, "input-android", message );
+        break;
+    case M64MSG_STATUS:
+        __android_log_print( ANDROID_LOG_DEBUG, "input-android", message );
+        break;
+    case M64MSG_VERBOSE:
+    default:
+        //__android_log_print( ANDROID_LOG_VERBOSE, "input-android", message );
+        break;
+    }
+}
+
 void DebugMessage( int level, const char *message, ... )
 {
     char msgbuf[1024];
     va_list args;
 
-    if( l_DebugCallback == NULL )
-        return;
+    if( _DebugCallback == NULL )
+        _DebugCallback = DebugCallback;
 
     va_start( args, message );
     vsprintf( msgbuf, message, args );
 
-    ( *l_DebugCallback )( l_DebugCallContext, level, msgbuf );
+    ( *_DebugCallback )( _debugCallContext, level, msgbuf );
 
     va_end( args );
 }
@@ -89,62 +113,63 @@ void DebugMessage( int level, const char *message, ... )
 // Mupen64Plus common plugin function definitions
 //*****************************************************************************
 
-EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *PluginType, int *PluginVersion, int *APIVersion, const char **PluginNamePtr, int *Capabilities )
+EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *pluginType, int *pluginVersion, int *apiVersion, const char **pluginNamePtr, int *capabilities )
 {
-    /* set version info */
-    if( PluginType != NULL )
-        *PluginType = M64PLUGIN_INPUT;
+    DebugMessage( M64MSG_INFO, "PluginGetVersion" );
 
-    if( PluginVersion != NULL )
-        *PluginVersion = PLUGIN_VERSION;
+    if( pluginType != NULL )
+        *pluginType = M64PLUGIN_INPUT;
 
-    if( APIVersion != NULL )
-        *APIVersion = INPUT_PLUGIN_API_VERSION;
+    if( pluginVersion != NULL )
+        *pluginVersion = PLUGIN_VERSION;
 
-    if( PluginNamePtr != NULL )
-        *PluginNamePtr = PLUGIN_NAME;
+    if( apiVersion != NULL )
+        *apiVersion = INPUT_PLUGIN_API_VERSION;
 
-    if( Capabilities != NULL )
+    if( pluginNamePtr != NULL )
+        *pluginNamePtr = PLUGIN_NAME;
+
+    if( capabilities != NULL )
     {
-        *Capabilities = 0;
+        *capabilities = 0;
     }
 
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle CoreLibHandle, void *Context, void (*DebugCallback)( void *, int, const char * ) )
+EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle coreLibHandle, void *context, void (*DebugCallback)( void *, int, const char * ) )
 {
-    int i;
+    DebugMessage( M64MSG_INFO, "PluginStartup" );
 
-    if( l_PluginInit )
+    if( _pluginInitialized )
         return M64ERR_ALREADY_INIT;
 
-    /* first thing is to set the callback function for debug info */
-    l_DebugCallback = DebugCallback;
-    l_DebugCallContext = Context;
+    _DebugCallback = DebugCallback;
+    _debugCallContext = context;
 
-    /* reset controllers */
     memset(controller, 0, sizeof(SController) * 4);
+
     /* set CONTROL struct pointers to the temporary static array */
     /* this small struct is used to tell the core whether each controller is plugged in, and what type of pak is connected */
     /* we only need it so that we can call load_configuration below, to auto-config for a GUI front-end */
+    int i;
     for (i = 0; i < 4; i++)
-        controller[i].control = temp_core_controlinfo + i;
+        controller[i].control = _temp_core_controlinfo + i;
 
-    l_PluginInit = 1;
+    _pluginInitialized = 1;
     return M64ERR_SUCCESS;
 }
 
-EXPORT m64p_error CALL PluginShutdown( void )
+EXPORT m64p_error CALL PluginShutdown()
 {
-    if( !l_PluginInit )
+    DebugMessage( M64MSG_INFO, "PluginShutdown" );
+
+    if( !_pluginInitialized )
         return M64ERR_NOT_INIT;
 
-    /* reset some local variables */
-    l_DebugCallback = NULL;
-    l_DebugCallContext = NULL;
-
-    l_PluginInit = 0;
+    _DebugCallback = NULL;
+    _debugCallContext = NULL;
+    _pluginInitialized = 0;
     return M64ERR_SUCCESS;
 }
 
@@ -154,7 +179,7 @@ EXPORT m64p_error CALL PluginShutdown( void )
 
 /******************************************************************
   Function: InitiateControllers
-  Purpose:  This function initialises how each of the controllers
+  Purpose:  This function initializes how each of the controllers
             should be handled.
   input:    - The handle to the main window.
             - A controller structure that needs to be filled for
@@ -162,25 +187,27 @@ EXPORT m64p_error CALL PluginShutdown( void )
   output:   none
 *******************************************************************/
 
-EXPORT void CALL InitiateControllers( CONTROL_INFO ControlInfo )
+EXPORT void CALL InitiateControllers( CONTROL_INFO controlInfo )
 {
-    int i;
+    DebugMessage( M64MSG_INFO, "InitiateControllers" );
 
-    // reset controllers
+    // Reset controllers
     memset( controller, 0, sizeof(SController) * 4 );
+
     // set our CONTROL struct pointers to the array that was passed in to this function from the core
     // this small struct tells the core whether each controller is plugged in, and what type of pak is connected
+    int i;
     for( i = 0; i < 4; i++ )
-        controller[i].control = ControlInfo.Controls + i;
+        controller[i].control = controlInfo.Controls + i;
 
     for( i = 0; i < 4; i++ )
     {
-        // plug in all controllers
+        // Plug in all controllers
         // TODO: Obtain this from JNI
         controller[i].control->Present = 1;
 
-        // test for rumble support for this joystick
-        // if rumble not supported, switch to mempack
+        // Test for rumble support for this joystick
+        // If rumble not supported, switch to mempack
         // TODO: Re-implement if needed
     }
 
@@ -195,50 +222,37 @@ EXPORT void CALL InitiateControllers( CONTROL_INFO ControlInfo )
             the controller state.
   output:   none
 *******************************************************************/
-EXPORT void CALL GetKeys( int Control, BUTTONS *Keys )
+EXPORT void CALL GetKeys( int controllerNum, BUTTONS *keys )
 {
     int b, c;
     for( c = 0; c < 4; c++ )
     {
+        // Set the button bits
         for( b = 0; b < 16; b++ )
         {
-            if( androidButtonState[c][b] )
-                controller[c].buttons.Value |= button_bits[b];
+            if( _androidButtonState[c][b] )
+                controller[c].buttons.Value |= BUTTON_BITS[b];
         }
-        // from the N64 func ref: The 3D Stick data is of type signed char and in
-        // the range between 80 and -80. (32768 / 409 = ~80.1)
-        if( androidAnalogState[c][0] || androidAnalogState[c][1] )
+
+        // Set the analog bytes
+        if( _androidAnalogState[c][0] || _androidAnalogState[c][1] )
         {
             // only report the stick position if it isn't back at the center
-            controller[c].buttons.X_AXIS = androidAnalogState[c][0];
-            controller[c].buttons.Y_AXIS = androidAnalogState[c][1];
+            controller[c].buttons.X_AXIS = _androidAnalogState[c][0];
+            controller[c].buttons.Y_AXIS = _androidAnalogState[c][1];
         }
     }
 
-    DebugMessage(M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", Control, *(int *)&controller[Control].buttons );
-    *Keys = controller[Control].buttons;
+    DebugMessage( M64MSG_VERBOSE, "Controller #%d value: 0x%8.8X", controllerNum, *(int *)&controller[controllerNum].buttons );
 
-    controller[Control].buttons.Value = 0;
+    // Assign the output data
+    *keys = controller[controllerNum].buttons;
+    controller[controllerNum].buttons.Value = 0;
 }
 
-/******************************************************************
-  Function: ControllerCommand
-  Purpose:  To process the raw data that has just been sent to a
-            specific controller.
-  input:    - Controller Number (0 to 3) and -1 signalling end of
-              processing the pif ram.
-            - Pointer of data to be processed.
-  output:   none
-
-  note:     This function is only needed if the DLL is allowing raw
-            data, or the plugin is set to raw
-
-            the data that is being processed looks like this:
-            initilize controller: 01 03 00 FF FF FF
-            read controller:      01 04 01 FF FF FF FF
-*******************************************************************/
 EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
 {
+    DebugMessage( M64MSG_INFO, "ControllerCommand" );
     unsigned char *Data = &Command[5];
 
     if( Control == -1 )
@@ -270,7 +284,6 @@ EXPORT void CALL ControllerCommand( int Control, unsigned char *Command )
         DebugMessage(M64MSG_VERBOSE, "Write pak");
         if( controller[Control].control->Plugin == PLUGIN_RAW )
         {
-
             DebugMessage( M64MSG_VERBOSE, "RD_WRITEPAK, and control->Plugin is PLUGIN_RAW!" );
 
             unsigned int dwAddress = ( Command[3] << 8 ) + ( Command[4] & 0xE0 );
@@ -327,11 +340,11 @@ EXPORT void CALL ReadController( int Control, unsigned char *Command )
 {
 }
 
-EXPORT void CALL RomClosed( void )
+EXPORT void CALL RomClosed()
 {
 }
 
-EXPORT int CALL RomOpen( void )
+EXPORT int CALL RomOpen()
 {
     return 1;
 }
@@ -348,28 +361,28 @@ EXPORT void CALL SDL_KeyUp( int keymod, int keysym )
 // Internal function definitions
 //*****************************************************************************
 
-static unsigned char DataCRC( unsigned char *Data, int iLenght )
+static unsigned char DataCRC( unsigned char *data, int length )
 {
-    unsigned char Remainder = Data[0];
+    unsigned char remainder = data[0];
 
-    int iByte = 1;
+    int byteCount = 1;
     unsigned char bBit = 0;
 
-    while( iByte <= iLenght )
+    while( byteCount <= length )
     {
-        int HighBit = ( ( Remainder & 0x80 ) != 0 );
-        Remainder = Remainder << 1;
+        int highBit = ( ( remainder & 0x80 ) != 0 );
+        remainder = remainder << 1;
 
-        Remainder += ( iByte < iLenght && Data[iByte] & ( 0x80 >> bBit ) ) ? 1 : 0;
+        remainder += ( byteCount < length && data[byteCount] & ( 0x80 >> bBit ) ) ? 1 : 0;
 
-        Remainder ^= ( HighBit ) ? 0x85 : 0;
+        remainder ^= ( highBit ) ? 0x85 : 0;
 
         bBit++;
-        iByte += bBit / 8;
+        byteCount += bBit / 8;
         bBit %= 8;
     }
 
-    return Remainder;
+    return remainder;
 }
 
 JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_updateVirtualGamePadStates(
@@ -379,10 +392,10 @@ JNIEXPORT void JNICALL Java_paulscode_android_mupen64plusae_CoreInterfaceNative_
     int b;
     for( b = 0; b < 16; b++ )
     {
-        androidButtonState[controllerNum][b] = elements[b];
+        _androidButtonState[controllerNum][b] = elements[b];
     }
     (*env)->ReleaseBooleanArrayElements( env, mp64pButtons, elements, 0 );
 
-    androidAnalogState[controllerNum][0] = (signed char) ((int) mp64pXAxis);
-    androidAnalogState[controllerNum][1] = (signed char) ((int) mp64pYAxis);
+    _androidAnalogState[controllerNum][0] = (signed char) ((int) mp64pXAxis);
+    _androidAnalogState[controllerNum][1] = (signed char) ((int) mp64pYAxis);
 }
