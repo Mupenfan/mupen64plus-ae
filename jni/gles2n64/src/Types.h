@@ -26,6 +26,12 @@ typedef volatile int64_t   vs64;   /* signed 64-bit */
 typedef float              f32;    /* single prec floating point */
 typedef double             f64;    /* double prec floating point */
 
+// Type-safe
+#ifndef null
+#define null nullptr
+#endif
+
+// TODO: get rid of this in favor of the above define
 #ifndef NULL
 #define NULL    0
 #endif
