@@ -335,8 +335,10 @@ bool DecodedMux::find(int index, int src)
 {
     for(int j=0;j<4;j++)
     {
-        if (decode[index][j] == src) return true;
+        if (decode[index][j] == src)
+            return true;
     }
+    
     return false;
 }
 
@@ -348,7 +350,11 @@ bool DecodedMux::replace(int cycle, int src, int dest)
         int ii = (cycle == 0) ? i : (2+i);
         for(int j=0;j<4;j++)
         {
-            if (decode[ii][j] == src) {decode[ii][j] = dest; r=true;}
+            if (decode[ii][j] == src)
+            {
+                decode[ii][j] = dest;
+                r = true;
+            }
         }
     }
     return r;
@@ -362,8 +368,16 @@ bool DecodedMux::swap(int cycle, int src0, int src1)
         int ii = (cycle == 0) ? i : (2+i);
         for(int j=0;j<4;j++)
         {
-            if (decode[ii][j] == src0) {decode[ii][j] = src1; r=true;}
-            else if (decode[ii][j] == src1) {decode[ii][j] = src0; r=true;}
+            if (decode[ii][j] == src0) 
+            {
+                decode[ii][j] = src1; 
+                r = true;
+            }
+            else if (decode[ii][j] == src1) 
+            {
+                decode[ii][j] = src0; 
+                r=true;
+            }
         }
     }
     return r;
@@ -643,10 +657,14 @@ void ShaderCombiner_Set(u64 mux, int flags)
 
         if (config.enableAlphaTest)
         {
-            if ((gDP.otherMode.alphaCompare == G_AC_THRESHOLD) && !(gDP.otherMode.alphaCvgSel)){
+            if ((gDP.otherMode.alphaCompare == G_AC_THRESHOLD) && !(gDP.otherMode.alphaCvgSel))
+            {
                 flags |= SC_ALPHAENABLED;
-                if (gDP.blendColor.a > 0.0f) flags |= SC_ALPHAGREATER;
-            } else if (gDP.otherMode.cvgXAlpha){
+                if (gDP.blendColor.a > 0.0f) 
+                    flags |= SC_ALPHAGREATER;
+            } 
+            else if (gDP.otherMode.cvgXAlpha)
+            {
                 flags |= SC_ALPHAENABLED;
                 flags |= SC_ALPHAGREATER;
             }

@@ -14,7 +14,6 @@ VIInfo VI;
 
 void VI_UpdateSize()
 {
-
     if (!config.video.force)
     {
         f32 xScale = _FIXED2FLOAT( _SHIFTR( *REG.VI_X_SCALE, 0, 12 ), 10 );
@@ -75,7 +74,6 @@ void VI_UpdateSize()
 
 void VI_UpdateScreen()
 {
-
     switch(config.updateMode)
     {
         case SCREEN_UPDATE_AT_VI_CHANGE:

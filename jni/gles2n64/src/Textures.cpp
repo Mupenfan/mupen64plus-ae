@@ -283,7 +283,7 @@ TextureFormat textureFormatRGBA[4*6] =
 
 TextureFormat *textureFormat = textureFormatIA;
 
-void __texture_format_rgba(int size, int format, TextureFormat *texFormat)
+void __texture_format_rgba(unsigned int size, int format, TextureFormat *texFormat)
 {
     if (size < G_IM_SIZ_16b)
     {
@@ -300,7 +300,7 @@ void __texture_format_rgba(int size, int format, TextureFormat *texFormat)
     }
 }
 
-void __texture_format_ci(int size, int format, TextureFormat *texFormat)
+void __texture_format_ci(unsigned int size, int format, TextureFormat *texFormat)
 {
     switch(size)
     {
@@ -325,7 +325,7 @@ void __texture_format_ci(int size, int format, TextureFormat *texFormat)
     }
 }
 
-void __texture_format(int size, int format, TextureFormat *texFormat)
+void __texture_format(unsigned int size, int format, TextureFormat *texFormat)
 {
     switch (format)
     {
@@ -382,8 +382,10 @@ void TextureCache_Init()
     cache.hash.init(11);
 #endif
 
-    if (config.texture.useIA) textureFormat = textureFormatIA;
-    else textureFormat = textureFormatRGBA;
+    if (config.texture.useIA)
+        textureFormat = textureFormatIA;
+    else 
+        textureFormat = textureFormatRGBA;
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -708,7 +710,7 @@ void TextureCache_LoadBackground( CachedTexture *texInfo )
 
         if (glType == GL_UNSIGNED_BYTE)
             _2xSaI8888( (u32*)dest, (u32*)scaledDest, texInfo->realWidth, texInfo->realHeight, texInfo->clampS, texInfo->clampT );
-        if (glType == GL_UNSIGNED_SHORT_4_4_4_4)
+        else if (glType == GL_UNSIGNED_SHORT_4_4_4_4)
             _2xSaI4444( (u16*)dest, (u16*)scaledDest, texInfo->realWidth, texInfo->realHeight, texInfo->clampS, texInfo->clampT );
         else
             _2xSaI5551( (u16*)dest, (u16*)scaledDest, texInfo->realWidth, texInfo->realHeight, texInfo->clampS, texInfo->clampT );
@@ -905,7 +907,7 @@ void TextureCache_Load( CachedTexture *texInfo )
 u32 TextureCache_CalculateCRC( u32 t, u32 width, u32 height )
 {
     u32 crc;
-    u32 y, /*i,*/ bpl, lineBytes, line;
+    u32 bpl, lineBytes, line;
     void *src;
 
     bpl = width << gSP.textureTile[t]->size >> 1;
@@ -918,12 +920,12 @@ u32 TextureCache_CalculateCRC( u32 t, u32 width, u32 height )
     crc = 0xFFFFFFFF;
 
 #ifdef __CRC_OPT
-    unsigned n = (config.texture.fastCRC) ? max(1, height / 8) : 1;
+    unsigned int n = (config.texture.fastCRC) ? max(1, height / 8) : 1;
 #else
-    unsigned n = 1;
+    unsigned int n = 1;
 #endif
 
-    for (y = 0; y < height; y += n)
+    for (u32 y = 0; y < height; y += n)
     {
         src = (void*) &TMEM[(gSP.textureTile[t]->tmem + (y * line)) & 511];
         crc = CRC_Calculate( crc, src, bpl );

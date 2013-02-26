@@ -165,8 +165,7 @@ static void stopButton_clicked( GtkWidget *widget, void *data )
     selectedMicrocode = NONE;
 }
 
-static gint
-delete_question_event(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gint delete_question_event(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
     return true; // undeleteable
 }
@@ -315,7 +314,7 @@ void GBI_Init()
 
 void GBI_Destroy()
 {
-    while (GBI.bottom)
+    while (GBI.bottom != NULL)
     {
         MicrocodeInfo *newBottom = GBI.bottom->higher;
 
@@ -326,7 +325,7 @@ void GBI_Destroy()
 
         GBI.bottom = newBottom;
 
-        if (GBI.bottom)
+        if (GBI.bottom != NULL)
             GBI.bottom->lower = NULL;
 
         GBI.numMicrocodes--;
@@ -351,27 +350,23 @@ void GBI_ProfileEnd(u32 cmd)
     GBI.profileTimer[i] += ticksGetTicks() - GBI.profileTmp;
 }
 
-void
-GBI_ProfileReset()
+void GBI_ProfileReset()
 {
     memset(GBI.profileTimer, 0, 12 * 256 * sizeof(int));
     memset(GBI.profileNum, 0, 12 * 256 * sizeof(int));
 }
 
-u32
-GBI_GetFuncTime(u32 ucode, u32 cmd)
+u32 GBI_GetFuncTime(u32 ucode, u32 cmd)
 {
     return GBI.profileTimer[ucode*256+cmd];
 }
 
-u32
-GBI_GetFuncNum(u32 ucode, u32 cmd)
+u32 GBI_GetFuncNum(u32 ucode, u32 cmd)
 {
     return GBI.profileNum[ucode*256+cmd];
 }
 
-u32
-GBI_ProfilePrint(FILE *file)
+u32 GBI_ProfilePrint(FILE *file)
 {
     int uc, cmd, total=0;
 
@@ -398,8 +393,7 @@ GBI_ProfilePrint(FILE *file)
     return total;
 }
 
-const char*
-GBI_GetUcodeName(u32 ucode)
+const char* GBI_GetUcodeName(u32 ucode)
 {
     switch(ucode)
     {
@@ -419,8 +413,7 @@ GBI_GetUcodeName(u32 ucode)
     }
 }
 
-const char*
-GBI_GetFuncName(unsigned int ucode, unsigned int cmd)
+const char* GBI_GetFuncName(unsigned int ucode, unsigned int cmd)
 {
     switch(cmd)
     {
@@ -947,7 +940,6 @@ void GBI_MakeCurrent( MicrocodeInfo *current )
 
     if (!GBI.current || (GBI.current->type != current->type))
     {
-
         for (int i = 0; i <= 0xFF; i++)
             GBI.cmd[i] = GBI_Unknown;
 
@@ -968,7 +960,6 @@ void GBI_MakeCurrent( MicrocodeInfo *current )
             case F3DCBFD:   F3DCBFD_Init(); break;
         }
     }
-
 
     GBI.current = current;
 }

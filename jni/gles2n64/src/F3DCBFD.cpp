@@ -22,12 +22,9 @@ u32 normal_address = 0;
 
 void F3DCBFD_Vtx(u32 w0, u32 w1)
 {
-
-	s32 v0, n;
-    u32 address;
-	n = (w0 >> 12)&0xFF;
-	v0 = ((w0 >> 1)&0x7F) - n;
-	address = RSP_SegmentToPhysical(w1);
+	s32 n  = ((w0 >> 12)&0xFF);
+	s32 v0 = ((w0 >>  1)&0x7F) - n;
+	u32 address = RSP_SegmentToPhysical(w1);
 
 	if (v0 < 0)
 	{
@@ -144,7 +141,6 @@ void F3DCBFD_MoveMem(u32 w0, u32 w1)
         case F3DCBFD_MV_NORMAL:
 			normal_address = RSP_SegmentToPhysical(w1);
             break;
-
     }
 }
 
@@ -207,6 +203,5 @@ void F3DCBFD_Init()
     GBI_SetGBI( G_BG_1CYC,              S2DEX2_BG_1CYC,             S2DEX_BG_1Cyc);
     GBI_SetGBI( G_BG_COPY,              S2DEX2_BG_COPY,             S2DEX_BG_Copy);
     GBI_SetGBI( G_OBJ_RENDERMODE,       S2DEX2_OBJ_RENDERMODE,      S2DEX_Obj_RenderMode);
-
 }
 

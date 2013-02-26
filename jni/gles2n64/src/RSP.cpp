@@ -22,7 +22,6 @@ RSPInfo     RSP;
 
 void RSP_LoadMatrix( f32 mtx[4][4], u32 address )
 {
-
     f32 recip = 1.5258789e-05f;
 
     struct _N64Matrix
