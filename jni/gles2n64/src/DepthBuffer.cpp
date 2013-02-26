@@ -23,7 +23,7 @@ void DepthBuffer_RemoveBottom()
 
     depthBuffer.bottom = newBottom;
 
-    if (depthBuffer.bottom != nullptr)
+    if (depthBuffer.bottom != NULL)
         depthBuffer.bottom->lower = NULL;
 
     depthBuffer.numBuffers--;
