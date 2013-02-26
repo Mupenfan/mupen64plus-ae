@@ -1,19 +1,19 @@
 #include <stdlib.h>
 
-#include "gles2N64.h"
-#include "N64.h"
-#include "GBI.h"
-#include "RSP.h"
-#include "gDP.h"
-#include "gSP.h"
-#include "Types.h"
-#include "Debug.h"
-#include "convert.h"
-#include "OpenGL.h"
 #include "CRC.h"
-#include "DepthBuffer.h"
+#include "GBI.h"
+#include "N64.h"
+#include "RSP.h"
 #include "VI.h"
 #include "Config.h"
+#include "Debug.h"
+#include "DepthBuffer.h"
+#include "OpenGL.h"
+#include "Types.h"
+#include "convert.h"
+#include "gles2N64.h"
+#include "gDP.h"
+#include "gSP.h"
 
 
 //thank rice_video for this:

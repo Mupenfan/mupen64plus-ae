@@ -1,4 +1,6 @@
 #include "Common.h"
+#include "Config.h"
+#include "OpenGL.h"
 #include "gles2N64.h"
 #include "Debug.h"
 #include "F3D.h"
@@ -13,8 +15,6 @@
 #include "gSP.h"
 #include "gDP.h"
 #include "GBI.h"
-#include "OpenGL.h"
-#include "Config.h"
 
 //BASED ON GLIDE64 Implementation
 

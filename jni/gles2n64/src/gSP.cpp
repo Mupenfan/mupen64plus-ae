@@ -1,23 +1,23 @@
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "CRC.h"
+#include "S2DEX.h"
+#include "VI.h"
+#include "3DMath.h"
 #include "Common.h"
-#include "gles2N64.h"
+#include "Config.h"
 #include "Debug.h"
+#include "DepthBuffer.h"
+#include "OpenGL.h"
 #include "Types.h"
 #include "RSP.h"
 #include "GBI.h"
-#include "gSP.h"
-#include "gDP.h"
-#include "3DMath.h"
-#include "OpenGL.h"
-#include "CRC.h"
-#include <string.h>
 #include "convert.h"
-#include "S2DEX.h"
-#include "VI.h"
-#include "DepthBuffer.h"
-#include "Config.h"
+#include "gDP.h"
+#include "gSP.h"
+#include "gles2N64.h"
 
 //Note: 0xC0 is used by 1080 alot, its an unknown command.
 

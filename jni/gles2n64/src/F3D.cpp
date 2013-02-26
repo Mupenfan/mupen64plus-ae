@@ -1,5 +1,7 @@
 #include "gles2N64.h"
 #include "Debug.h"
+#include "DepthBuffer.h"
+#include "OpenGL.h"
 #include "F3D.h"
 #include "N64.h"
 #include "RSP.h"
@@ -7,8 +9,6 @@
 #include "gSP.h"
 #include "gDP.h"
 #include "GBI.h"
-#include "OpenGL.h"
-#include "DepthBuffer.h"
 
 #include "Config.h"
 

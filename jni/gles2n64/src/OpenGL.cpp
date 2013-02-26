@@ -1,7 +1,6 @@
-
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -13,19 +12,19 @@
 ////
 
 #include "Common.h"
-#include "gles2N64.h"
-#include "OpenGL.h"
-#include "Types.h"
-#include "N64.h"
-#include "gSP.h"
-#include "gDP.h"
-#include "Textures.h"
-#include "ShaderCombiner.h"
-#include "VI.h"
-#include "RSP.h"
 #include "Config.h"
-#include "ticks.h"
+#include "gles2N64.h"
+#include "gDP.h"
+#include "gSP.h"
+#include "N64.h"
+#include "OpenGL.h"
+#include "RSP.h"
+#include "ShaderCombiner.h"
+#include "Textures.h"
+#include "Types.h"
+#include "VI.h"
 
+#include "ticks.h"
 #include "FrameSkipper.h"
 
 // JNI linkage:

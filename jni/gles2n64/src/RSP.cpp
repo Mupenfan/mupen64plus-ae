@@ -1,19 +1,20 @@
 #include <math.h>
+
+#include "3DMath.h"
 #include "Common.h"
-#include "gles2N64.h"
-#include "OpenGL.h"
 #include "Debug.h"
+#include "DepthBuffer.h"
+#include "F3D.h"
+#include "GBI.h"
+#include "gles2N64.h"
+#include "gSP.h"
+#include "N64.h"
+#include "OpenGL.h"
 #include "RSP.h"
 #include "RDP.h"
-#include "N64.h"
-#include "F3D.h"
-#include "3DMath.h"
-#include "VI.h"
 #include "ShaderCombiner.h"
-#include "DepthBuffer.h"
-#include "GBI.h"
-#include "gSP.h"
 #include "Textures.h"
+#include "VI.h"
 
 //#define PRINT_DISPLAYLIST
 //#define PRINT_DISPLAYLIST_NUM 1

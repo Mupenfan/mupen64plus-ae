@@ -1,11 +1,12 @@
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
 #include <memory.h>
 
 #ifndef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
+#include "2xSAI.h"
 #include "Common.h"
 #include "Config.h"
 #include "OpenGL.h"
@@ -17,7 +18,6 @@
 #include "N64.h"
 #include "CRC.h"
 #include "convert.h"
-#include "2xSAI.h"
 //#include "FrameBuffer.h"
 
 #define FORMAT_NONE     0

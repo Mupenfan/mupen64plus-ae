@@ -1,4 +1,3 @@
-
 #ifndef SHADERCOMBINER_H
 #define SHADERCOMBINER_H
 

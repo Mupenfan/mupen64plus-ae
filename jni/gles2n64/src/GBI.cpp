@@ -1,6 +1,8 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "gles2N64.h"
 #include "GBI.h"
 #include "RDP.h"
@@ -17,12 +19,9 @@
 #include "F3DWRUS.h"
 #include "F3DPD.h"
 #include "F3DCBFD.h"
-#include "Types.h"
-# include <string.h>
-# include <unistd.h>
-# include <stdlib.h>
-# include "convert.h"
 #include "Common.h"
+#include "Types.h"
+#include "convert.h"
 #include "ticks.h"
 
 #include "CRC.h"

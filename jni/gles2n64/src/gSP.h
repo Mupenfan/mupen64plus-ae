@@ -1,9 +1,9 @@
 #ifndef GSP_H
 #define GSP_H
 
-#include "Types.h"
 #include "GBI.h"
 #include "gDP.h"
+#include "Types.h"
 
 #define CHANGED_VIEWPORT        0x01
 #define CHANGED_MATRIX          0x02

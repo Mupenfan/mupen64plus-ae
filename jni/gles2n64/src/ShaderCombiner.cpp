@@ -1,10 +1,10 @@
-
 #include <stdlib.h>
+
+#include "Common.h"
+#include "Config.h"
 #include "OpenGL.h"
 #include "ShaderCombiner.h"
-#include "Common.h"
 #include "Textures.h"
-#include "Config.h"
 
 
 //(sa - sb) * m + a

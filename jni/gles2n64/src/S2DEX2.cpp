@@ -1,6 +1,3 @@
-#include "OpenGL.h"
-#include "S2DEX.h"
-#include "S2DEX2.h"
 #include "F3D.h"
 #include "F3DEX.h"
 #include "F3DEX2.h"
@@ -8,6 +5,9 @@
 #include "gSP.h" 
 #include "gDP.h"
 #include "RSP.h"
+#include "OpenGL.h"
+#include "S2DEX.h"
+#include "S2DEX2.h"
 #include "Types.h"
 
 void S2DEX2_Init()

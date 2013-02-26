@@ -24,14 +24,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "Config.h"
 #include "gles2N64.h"
+#include "Common.h"
+#include "Config.h"
+#include "OpenGL.h"
 #include "RSP.h"
 #include "Textures.h"
-#include "OpenGL.h"
-
-#include "Config.h"
-#include "Common.h"
 
 
 Config config;

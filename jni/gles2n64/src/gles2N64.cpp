@@ -1,22 +1,22 @@
-
-#include <dlfcn.h>
 #include <string.h>
+#include <dlfcn.h>
 #include <cpu-features.h>
 
 #include "m64p_types.h"
 #include "m64p_plugin.h"
 
 #include "gles2N64.h"
+#include "3DMath.h"
+#include "Config.h"
 #include "Debug.h"
-#include "OpenGL.h"
 #include "N64.h"
+#include "OpenGL.h"
 #include "RSP.h"
 #include "RDP.h"
-#include "VI.h"
-#include "Config.h"
-#include "Textures.h"
 #include "ShaderCombiner.h"
-#include "3DMath.h"
+#include "Textures.h"
+#include "VI.h"
+
 #include "FrameSkipper.h"
 #include "ticks.h"
 

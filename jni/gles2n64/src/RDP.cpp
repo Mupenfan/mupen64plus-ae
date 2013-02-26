@@ -1,11 +1,11 @@
-#include "N64.h"
-#include "RSP.h"
+#include "Common.h"
+#include "Debug.h"
 #include "GBI.h"
 #include "gDP.h"
-#include "Types.h"
-#include "Debug.h"
-#include "Common.h"
 #include "gSP.h"
+#include "N64.h"
+#include "RSP.h"
+#include "Types.h"
 
 void RDP_Unknown( u32 w0, u32 w1 )
 {
