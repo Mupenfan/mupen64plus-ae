@@ -447,7 +447,7 @@ static void gSPTransformVertex_default(float vtx[4], float mtx[4][4])
     x = vtx[0];
     y = vtx[1];
     z = vtx[2];
-    w = vtx[3];
+    w = vtx[3]; // TODO: Unused?
 
     vtx[0] = x * mtx[0][0] + y * mtx[1][0] + z * mtx[2][0] + mtx[3][0];
     vtx[1] = x * mtx[0][1] + y * mtx[1][1] + z * mtx[2][1] + mtx[3][1];
@@ -492,9 +492,6 @@ void gSPCombineMatrices()
 
 void gSPProcessVertex( u32 v )
 {
-    f32 intensity;
-    f32 r, g, b;
-
     if (gSP.changed & CHANGED_MATRIX)
         gSPCombineMatrices();
 
