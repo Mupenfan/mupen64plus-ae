@@ -86,7 +86,7 @@ bool _IsRenderTexture()
         }
     }
 
-    if (foundFillRect )
+    if (foundFillRect)
     {
         if (foundSetFillColor)
         {

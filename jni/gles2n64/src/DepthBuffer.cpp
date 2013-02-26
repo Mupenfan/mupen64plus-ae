@@ -41,14 +41,14 @@ void DepthBuffer_Remove( DepthBuffer *buffer )
     {
         depthBuffer.bottom = buffer->higher;
 
-        if (depthBuffer.bottom)
+        if (depthBuffer.bottom != NULL)
             depthBuffer.bottom->lower = NULL;
     }
     else if (buffer == depthBuffer.top)
     {
         depthBuffer.top = buffer->lower;
 
-        if (depthBuffer.top)
+        if (depthBuffer.top != NULL)
             depthBuffer.top->higher = NULL;
     }
     else
@@ -82,10 +82,10 @@ DepthBuffer *DepthBuffer_AddTop()
     newtop->lower = depthBuffer.top;
     newtop->higher = NULL;
 
-    if (depthBuffer.top)
+    if (depthBuffer.top != NULL)
         depthBuffer.top->higher = newtop;
 
-    if (!depthBuffer.bottom)
+    if (!depthBuffer.bottom != NULL)
         depthBuffer.bottom = newtop;
 
     depthBuffer.top = newtop;
@@ -119,8 +119,10 @@ void DepthBuffer_MoveToTop( DepthBuffer *newtop )
 
 void DepthBuffer_Destroy()
 {
-    while (depthBuffer.bottom)
+    while (depthBuffer.bottom != NULL)
+    {
         DepthBuffer_RemoveBottom();
+    }
 
     depthBuffer.top = NULL;
 }
@@ -153,7 +155,7 @@ DepthBuffer *DepthBuffer_FindBuffer( u32 address )
 {
     DepthBuffer *current = depthBuffer.top;
 
-    while (current)
+    while (current != NULL)
     {
         if (current->address == address)
             return current;

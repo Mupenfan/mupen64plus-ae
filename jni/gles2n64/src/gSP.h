@@ -157,12 +157,17 @@ struct gSPInfo
 
     struct
     {
-        s16 multiplier, offset;
+        s16 multiplier;
+        s16 offset;
     } fog;
 
     struct
     {
-        u32 address, width, height, format, size, palette;
+        u32 address; 
+        u32 width, height;
+        u32 format;
+        u32 size;
+        u32 palette;
     } bgImage;
 
     u32 geometryMode;
@@ -174,7 +179,8 @@ struct gSPInfo
 
     struct
     {
-        u32 vtx, mtx;
+        u32 vtx;
+        u32 mtx;
     } DMAOffsets;
 };
 
