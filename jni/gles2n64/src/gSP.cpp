@@ -96,7 +96,7 @@ u32 __indexmap_getnew(u32 index, u32 num)
 
     //test to see if unmapped
     u32 unmapped = 1;
-    for(int i=0;i<num;i++)
+    for(u32 i=0;i<num;i++)
     {
         if (OGL.triangles.indexmap[i]!=0xFFFFFFFF)
         {
@@ -143,7 +143,7 @@ u32 __indexmap_getnew(u32 index, u32 num)
         }
     }
 
-    for(int i=0;i<num;i++)
+    for(u32 i=0;i<num;i++)
     {
         OGL.triangles.indexmap[index+i] = ind+i;
         OGL.triangles.indexmapinv[ind+i] = index+i;

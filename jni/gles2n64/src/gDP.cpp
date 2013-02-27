@@ -381,7 +381,7 @@ void gDPSetColorImage( u32 format, u32 size, u32 width, u32 address )
 
     if (config.ignoreOffscreenRendering)
     {
-        int i;
+        u32 i;
 
         // colorimage byte size:
         // color image height is not the best thing to base this on, it's normally set
