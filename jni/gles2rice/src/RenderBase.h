@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *  to make them be accessed faster
  */
 
-#define RICE_MATRIX_STACK       60
-#define MAX_TEXTURES                8
+#define RICE_MATRIX_STACK    60
+#define MAX_TEXTURES          8
 
 enum FillMode
 {
@@ -277,10 +277,10 @@ inline void SetEnvColor(uint32 dwCol)
 { 
     gRDP.colorsAreReloaded = true;
     gRDP.envColor = dwCol; 
-    gRDP.fvEnvColor[0] = ((dwCol>>16)&0xFF)/255.0f;     //r
-    gRDP.fvEnvColor[1] = ((dwCol>>8)&0xFF)/255.0f;          //g
-    gRDP.fvEnvColor[2] = ((dwCol)&0xFF)/255.0f;         //b
-    gRDP.fvEnvColor[3] = ((dwCol>>24)&0xFF)/255.0f;     //a
+    gRDP.fvEnvColor[0] = ((dwCol>>16)&0xFF)/255.0f;     //R
+    gRDP.fvEnvColor[1] = ((dwCol>>8)&0xFF)/255.0f;      //G
+    gRDP.fvEnvColor[2] = ((dwCol)&0xFF)/255.0f;         //B
+    gRDP.fvEnvColor[3] = ((dwCol>>24)&0xFF)/255.0f;     //A
 }
 inline uint32 GetEnvColor() { return gRDP.envColor; }
 inline float* GetEnvColorfv() { return gRDP.fvEnvColor; }

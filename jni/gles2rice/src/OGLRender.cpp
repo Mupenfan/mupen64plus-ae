@@ -50,9 +50,9 @@ extern "C" int Android_JNI_GetHardwareType();
 
 //#include "liblinux/BMGLibPNG.h"
 
-// Fix me, use OGL internal L/T and matrix stack
-// Fix me, use OGL lookupAt function
-// Fix me, use OGL DisplayList
+// FIXME: Use OGL internal L/T and matrix stack
+// FIXME: Use OGL lookupAt function
+// FIXME: Use OGL DisplayList
 
 UVFlagMap OGLXUVFlagMaps[] =
 {
@@ -531,10 +531,25 @@ bool OGLRender::RenderTexRect()
 
 
     GLfloat colour[] = {
-            g_texRectTVtx[3].r, g_texRectTVtx[3].g, g_texRectTVtx[3].b, g_texRectTVtx[3].a,
-            g_texRectTVtx[2].r, g_texRectTVtx[2].g, g_texRectTVtx[2].b, g_texRectTVtx[2].a,
-            g_texRectTVtx[1].r, g_texRectTVtx[1].g, g_texRectTVtx[1].b, g_texRectTVtx[1].a,
-            g_texRectTVtx[0].r, g_texRectTVtx[0].g, g_texRectTVtx[0].b, g_texRectTVtx[0].a
+            static_cast<GLfloat>(g_texRectTVtx[3].r), 
+            static_cast<GLfloat>(g_texRectTVtx[3].g), 
+            static_cast<GLfloat>(g_texRectTVtx[3].b),
+            static_cast<GLfloat>(g_texRectTVtx[3].a),
+            
+            static_cast<GLfloat>(g_texRectTVtx[2].r),
+            static_cast<GLfloat>(g_texRectTVtx[2].g),
+            static_cast<GLfloat>(g_texRectTVtx[2].b), 
+            static_cast<GLfloat>(g_texRectTVtx[2].a),
+            
+            static_cast<GLfloat>(g_texRectTVtx[1].r),
+            static_cast<GLfloat>(g_texRectTVtx[1].g), 
+            static_cast<GLfloat>(g_texRectTVtx[1].b),
+            static_cast<GLfloat>(g_texRectTVtx[1].a),
+            
+            static_cast<GLfloat>(g_texRectTVtx[0].r), 
+            static_cast<GLfloat>(g_texRectTVtx[0].g), 
+            static_cast<GLfloat>(g_texRectTVtx[0].b),
+            static_cast<GLfloat>(g_texRectTVtx[0].a)
     };
 
     GLfloat tex[] = {
