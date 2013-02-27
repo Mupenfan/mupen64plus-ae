@@ -82,7 +82,7 @@ endif
 
 LOCAL_CFLAGS += -O3 -ffast-math -frename-registers -fomit-frame-pointer -fsingle-precision-constant -fpredictive-commoning -fno-strict-aliasing -fvisibility=hidden
 LOCAL_CFLAGS += -Wno-psabi
-LOCAL_CPPFLAGS += -fvisibility-inlines-hidden
+LOCAL_CPPFLAGS += -std=c++11 -fvisibility-inlines-hidden
 #LOCAL_LDLIBS += -lcore
 
 LOCAL_CFLAGS += -fsigned-char
