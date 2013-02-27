@@ -29,12 +29,16 @@
 #define PLUGIN_NAME                 "Mupen64Plus Android Input Plugin"
 #define PLUGIN_VERSION              0x010000
 #define INPUT_PLUGIN_API_VERSION    0x020000
+#define PAK_IO_RUMBLE       		0xC000	// the address where rumble commands are sent
 
-// Internal variables
-static int _pluginInitialized = 0;
-static unsigned char _androidButtonState[4][16];
-static signed char _androidAnalogX[4];
-static signed char _androidAnalogY[4];
+// ControllerCommand commands
+#define RD_GETSTATUS        		0x00   	// get status
+#define RD_READKEYS         		0x01  	// read button values
+#define RD_READPAK         			0x02   	// read from controllerpack
+#define RD_WRITEPAK         		0x03   	// write to controllerpack
+#define RD_READEEPROM       		0x04  	// read eeprom
+#define RD_WRITEEPROM       		0x05   	// write eeprom
+#define RD_RESETCONTROLLER  		0xff   	// reset controller
 
 // Internal constants
 static const unsigned short const BUTTON_BITS[] =
@@ -56,6 +60,15 @@ static const unsigned short const BUTTON_BITS[] =
     0x4000,  // Mempak switch
     0x8000   // Rumblepak switch
 };
+
+// Internal function declarations
+static unsigned char DataCRC( unsigned char*, int );
+
+// Internal variables
+static int _pluginInitialized = 0;
+static unsigned char _androidButtonState[4][16];
+static signed char _androidAnalogX[4];
+static signed char _androidAnalogY[4];
 
 //*****************************************************************************
 // Mupen64Plus debug function definitions
@@ -96,8 +109,6 @@ void DebugMessage( int level, const char *message, ... )
 
 EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *pluginType, int *pluginVersion, int *apiVersion, const char **pluginNamePtr, int *capabilities )
 {
-    DebugMessage( M64MSG_INFO, "PluginGetVersion" );
-
     if( pluginType != NULL )
         *pluginType = M64PLUGIN_INPUT;
 
@@ -118,8 +129,6 @@ EXPORT m64p_error CALL PluginGetVersion( m64p_plugin_type *pluginType, int *plug
 
 EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle coreLibHandle, void *context, void (*DebugCallback)( void *, int, const char * ) )
 {
-    DebugMessage( M64MSG_INFO, "PluginStartup" );
-
     if( _pluginInitialized )
         return M64ERR_ALREADY_INIT;
 
@@ -129,8 +138,6 @@ EXPORT m64p_error CALL PluginStartup( m64p_dynlib_handle coreLibHandle, void *co
 
 EXPORT m64p_error CALL PluginShutdown()
 {
-    DebugMessage( M64MSG_INFO, "PluginShutdown" );
-
     if( !_pluginInitialized )
         return M64ERR_NOT_INIT;
 
@@ -144,16 +151,14 @@ EXPORT m64p_error CALL PluginShutdown()
 
 EXPORT void CALL InitiateControllers( CONTROL_INFO controlInfo )
 {
-    DebugMessage( M64MSG_INFO, "InitiateControllers" );
-
     int i;
     for( i = 0; i < 4; i++ )
     {
         // Configure each controller
         // TODO: Obtain this through JNI
-        controlInfo.Controls->Present = 1;
-        controlInfo.Controls->Plugin = 2;
-        controlInfo.Controls->RawData = 0;
+        ( controlInfo.Controls + i )->Present = 1;
+        ( controlInfo.Controls + i )->Plugin = 5;
+        ( controlInfo.Controls + i )->RawData = 0;
     }
 }
 
@@ -175,14 +180,50 @@ EXPORT void CALL GetKeys( int controllerNum, BUTTONS *keys )
     keys->Y_AXIS = _androidAnalogY[controllerNum];
 }
 
-EXPORT void CALL ControllerCommand( int control, unsigned char *command )
+EXPORT void CALL ControllerCommand( int controllerNum, unsigned char *command )
 {
-    DebugMessage( M64MSG_INFO, "ControllerCommand" );
+    if( controllerNum < 0 )
+        return;
+
+    unsigned char *data = &command[5];
+	unsigned int dwAddress = ( command[3] << 8 ) + ( command[4] & 0xE0 );
+    switch( command[2] )
+    {
+    case RD_READPAK:
+		if( ( dwAddress >= 0x8000 ) && ( dwAddress < 0x9000 ) )
+		{
+			memset( data, 0x80, 32 );
+		}
+		else
+		{
+			memset( data, 0x00, 32 );
+		}
+		data[32] = DataCRC( data, 32 );
+        break;
+
+    case RD_WRITEPAK:
+		if( dwAddress == PAK_IO_RUMBLE )
+		{
+			if( *data )
+			{
+				DebugMessage( M64MSG_INFO, "Vibrating..." );
+				// TODO: Implement vibration interface to java
+				// Android_JNI_Vibrate( 1 );
+			}
+			else
+			{
+				DebugMessage( M64MSG_INFO, "off" );
+				// TODO: Implement vibration interface to java
+				// Android_JNI_Vibrate( 0 );
+			}
+		}
+		data[32] = DataCRC( data, 32 );
+        break;
+    }
 }
 
 EXPORT void CALL ReadController( int control, unsigned char *command )
 {
-    DebugMessage( M64MSG_VERBOSE, "ReadController" );
 }
 
 EXPORT void CALL RomClosed()
@@ -200,6 +241,34 @@ EXPORT void CALL SDL_KeyDown( int keymod, int keysym )
 
 EXPORT void CALL SDL_KeyUp( int keymod, int keysym )
 {
+}
+
+//*****************************************************************************
+// Internal function definitions
+//*****************************************************************************
+
+static unsigned char DataCRC( unsigned char *data, int length )
+{
+    unsigned char remainder = data[0];
+
+    int iByte = 1;
+    unsigned char bBit = 0;
+
+    while( iByte <= length )
+    {
+        int highBit = ((remainder & 0x80) != 0);
+        remainder = remainder << 1;
+
+        remainder += ( iByte < length && data[iByte] & (0x80 >> bBit )) ? 1 : 0;
+
+        remainder ^= (highBit) ? 0x85 : 0;
+
+        bBit++;
+        iByte += bBit/8;
+        bBit %= 8;
+    }
+
+    return remainder;
 }
 
 //*****************************************************************************
