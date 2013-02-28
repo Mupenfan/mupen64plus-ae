@@ -32,6 +32,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "liblinux/BMGDLL.h"
 #include <sys/types.h>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #ifdef min
 #undef min
@@ -902,12 +904,13 @@ void MirrorTexture(uint32 dwTile, TxtrCacheEntry *pEntry)
 enum TextureType
 {
     NO_TEXTURE,
- RGB_PNG,
- COLOR_INDEXED_BMP,
- RGB_WITH_ALPHA_TOGETHER_PNG,
- RGBA_PNG_FOR_CI,
- RGBA_PNG_FOR_ALL_CI,
+    RGB_PNG,
+    COLOR_INDEXED_BMP,
+    RGB_WITH_ALPHA_TOGETHER_PNG,
+    RGBA_PNG_FOR_CI,
+    RGBA_PNG_FOR_ALL_CI,
 };
+
 typedef struct {
     unsigned int width;
     unsigned int height;
