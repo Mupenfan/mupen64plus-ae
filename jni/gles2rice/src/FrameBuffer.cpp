@@ -608,8 +608,8 @@ uint32 CalculateRDRAMCRC(void *pPhysicalAddress, uint32 left, uint32 top, uint32
 
             dwAsmHeight = height - 1;
             dwAsmPitch = pitchInBytes;
-#if defined(NO_ASM)
 
+#if defined(NO_ASM)
             uint32 pitch = pitchInBytes>>2;
             uint32* pStart = (uint32*)pPhysicalAddress;
             pStart += (top * pitch) + (((left<<size)+1)>>3);
@@ -669,7 +669,7 @@ l1:             mov esi, [ecx+ebx]
                 pop ebx
                 pop eax
             }
-#elif defined(__GNUC__) && defined(__x86_64__)
+#elif defined(__x86_64__)
         asm volatile(" xorl          %k2,      %k2           \n"
                      " movslq        %k4,      %q4           \n"
                      "0:                                     \n"
