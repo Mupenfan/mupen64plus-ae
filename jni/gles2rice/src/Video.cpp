@@ -88,7 +88,6 @@ RECT frameWriteByCPURectArray[20][20];
 bool frameWriteByCPURectFlag[20][20];
 std::vector<uint32> frameWriteRecord;
 
-//void (*renderCallback)() = NULL;
 void (*renderCallback)(int) = NULL;
 
 /* definitions of pointers to Core config functions */

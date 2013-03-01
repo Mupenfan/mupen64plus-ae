@@ -973,7 +973,7 @@ int GetImageInfoFromFile(char* pSrcFile, IMAGE_INFO *pSrcInfo)
     }
     else if(sig[0] == 137 && sig[1] == 'P' && sig[2] == 'N' && sig[3] == 'G' && sig[4] == '\r' && sig[5] == '\n' &&
                sig[6] == 26 && sig[7] == '\n') // PNG
-        {
+    {
         struct BMGImageStruct img;
         memset(&img, 0, sizeof(BMGImageStruct));
         BMG_Error code = ReadPNGInfo(pSrcFile, &img);
