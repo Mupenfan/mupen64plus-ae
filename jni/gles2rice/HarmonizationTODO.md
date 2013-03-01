@@ -1,0 +1,3 @@
+- Commit 822e0ba45eae69ed32f822ddc5ba606eb184fb02
+    - Restore Kris to credits: `#define PLUGIN_NAME "Mupen64Plus OpenGL Video Plugin by Rice, with GLES2 Support by Kris"`
+    - Update copyright dates 
