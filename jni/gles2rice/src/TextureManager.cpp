@@ -203,10 +203,8 @@ void CTextureManager::PurgeOldTextures()
         
         if ( status.gDlistCount - pCurr->FrameLastUsed > dwFramesToDelete && !TCacheEntryIsLoaded(pCurr) )
         {
-            if (pPrev != NULL)
-                pPrev->pNext = pCurr->pNext;
-            else
-                m_pHead = pCurr->pNext;
+            if (pPrev != NULL) pPrev->pNext        = pCurr->pNext;
+            else               m_pHead = pCurr->pNext;
             
             delete pCurr;
             pCurr = pNext;  
@@ -239,11 +237,10 @@ void CTextureManager::RecycleAllTextures()
             
             dwTotalUses += pTVictim->dwUses;
             dwCount++;
-
             if (g_bUseSetTextureMem)
                 delete pTVictim;
             else
-                RecycleTexture(pTVictim);
+            RecycleTexture(pTVictim);
         }
     }
 }
