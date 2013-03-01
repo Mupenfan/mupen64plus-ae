@@ -47,8 +47,9 @@ extern "C" int Android_JNI_UseRGBA8888();
 #include "Video.h"
 #include "version.h"
 
-//#include "liblinux/BMGLibPNG.h"
-
+/*
+#include "liblinux/BMGLibPNG.h"
+*/
 
 COGLGraphicsContext::COGLGraphicsContext() :
     m_bSupportMultiTexture(false),
@@ -70,7 +71,6 @@ COGLGraphicsContext::COGLGraphicsContext() :
     m_pExtensionStr(NULL),
     m_pVersionStr(NULL)
 {
-
 }
 
 
@@ -102,60 +102,69 @@ bool COGLGraphicsContext::Initialize(uint32 dwWidth, uint32 dwHeight, BOOL bWind
     int bVerticalSync = windowSetting.bVerticalSync;
     if( options.colorQuality == TEXTURE_FMT_A4R4G4B4 ) colorBufferDepth = 16;
 
-/*    // init sdl & gl
+/*
+    // init sdl & gl
     DebugMessage(M64MSG_VERBOSE, "Initializing video subsystem...");
     if (CoreVideo_Init() != M64ERR_SUCCESS)   
         return false;
 */
+
     /* hard-coded attribute values */
     const int iDOUBLEBUFFER = 1;
 
     /* set opengl attributes */
-//    CoreVideo_GL_SetAttribute(M64P_GL_DOUBLEBUFFER, iDOUBLEBUFFER);
-//    CoreVideo_GL_SetAttribute(M64P_GL_SWAP_CONTROL, bVerticalSync);
-//    CoreVideo_GL_SetAttribute(M64P_GL_BUFFER_SIZE, colorBufferDepth);
-//    CoreVideo_GL_SetAttribute(M64P_GL_DEPTH_SIZE, depthBufferDepth);
-//
-//    /* set multisampling */
-//    if (options.multiSampling > 0)
-//    {
-//        CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLEBUFFERS, 1);
-//        if (options.multiSampling <= 2)
-//            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 2);
-//        else if (options.multiSampling <= 4)
-//            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 4);
-//        else if (options.multiSampling <= 8)
-//            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 8);
-//        else
-//            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 16);
-//    }
-//
-//    /* Set the video mode */
-//    m64p_video_mode ScreenMode = bWindowed ? M64VIDEO_WINDOWED : M64VIDEO_FULLSCREEN;
-//    if (CoreVideo_SetVideoMode(windowSetting.uDisplayWidth, windowSetting.uDisplayHeight, colorBufferDepth, ScreenMode) != M64ERR_SUCCESS)
-//    {
-//        DebugMessage(M64MSG_ERROR, "Failed to set %i-bit video mode: %ix%i", colorBufferDepth, (int)windowSetting.uDisplayWidth, (int)windowSetting.uDisplayHeight);
-//        CoreVideo_Quit();
-//        return false;
-//    }
+/*
+    CoreVideo_GL_SetAttribute(M64P_GL_DOUBLEBUFFER, iDOUBLEBUFFER);
+    CoreVideo_GL_SetAttribute(M64P_GL_SWAP_CONTROL, bVerticalSync);
+    CoreVideo_GL_SetAttribute(M64P_GL_BUFFER_SIZE, colorBufferDepth);
+    CoreVideo_GL_SetAttribute(M64P_GL_DEPTH_SIZE, depthBufferDepth);
+*/
+
+    /* set multisampling */
+/*
+    if (options.multiSampling > 0)
+    {
+        CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLEBUFFERS, 1);
+        if (options.multiSampling <= 2)
+            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 2);
+        else if (options.multiSampling <= 4)
+            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 4);
+        else if (options.multiSampling <= 8)
+            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 8);
+        else
+            CoreVideo_GL_SetAttribute(M64P_GL_MULTISAMPLESAMPLES, 16);
+    }
+*/
+   
+    /* Set the video mode */
+/*
+    m64p_video_mode ScreenMode = bWindowed ? M64VIDEO_WINDOWED : M64VIDEO_FULLSCREEN;
+    if (CoreVideo_SetVideoMode(windowSetting.uDisplayWidth, windowSetting.uDisplayHeight, colorBufferDepth, ScreenMode) != M64ERR_SUCCESS)
+    {
+        DebugMessage(M64MSG_ERROR, "Failed to set %i-bit video mode: %ix%i", colorBufferDepth, (int)windowSetting.uDisplayWidth, (int)windowSetting.uDisplayHeight);
+        CoreVideo_Quit();
+        return false;
+    }
+*/
 
     /* check that our opengl attributes were properly set */
-//    int iActual;
-//    if (CoreVideo_GL_GetAttribute(M64P_GL_DOUBLEBUFFER, &iActual) == M64ERR_SUCCESS)
-//        if (iActual != iDOUBLEBUFFER)
-//            DebugMessage(M64MSG_WARNING, "Failed to set GL_DOUBLEBUFFER to %i. (it's %i)", iDOUBLEBUFFER, iActual);
-//    if (CoreVideo_GL_GetAttribute(M64P_GL_SWAP_CONTROL, &iActual) == M64ERR_SUCCESS)
-//        if (iActual != bVerticalSync)
-//            DebugMessage(M64MSG_WARNING, "Failed to set GL_SWAP_CONTROL to %i. (it's %i)", bVerticalSync, iActual);
-//    if (CoreVideo_GL_GetAttribute(M64P_GL_BUFFER_SIZE, &iActual) == M64ERR_SUCCESS)
-//        if (iActual != colorBufferDepth)
-//            DebugMessage(M64MSG_WARNING, "Failed to set GL_BUFFER_SIZE to %i. (it's %i)", colorBufferDepth, iActual);
-//    if (CoreVideo_GL_GetAttribute(M64P_GL_DEPTH_SIZE, &iActual) == M64ERR_SUCCESS)
-//        if (iActual != depthBufferDepth)
-//            DebugMessage(M64MSG_WARNING, "Failed to set GL_DEPTH_SIZE to %i. (it's %i)", depthBufferDepth, iActual);
+/*
+    int iActual;
+    if (CoreVideo_GL_GetAttribute(M64P_GL_DOUBLEBUFFER, &iActual) == M64ERR_SUCCESS)
+        if (iActual != iDOUBLEBUFFER)
+            DebugMessage(M64MSG_WARNING, "Failed to set GL_DOUBLEBUFFER to %i. (it's %i)", iDOUBLEBUFFER, iActual);
+    if (CoreVideo_GL_GetAttribute(M64P_GL_SWAP_CONTROL, &iActual) == M64ERR_SUCCESS)
+        if (iActual != bVerticalSync)
+            DebugMessage(M64MSG_WARNING, "Failed to set GL_SWAP_CONTROL to %i. (it's %i)", bVerticalSync, iActual);
+    if (CoreVideo_GL_GetAttribute(M64P_GL_BUFFER_SIZE, &iActual) == M64ERR_SUCCESS)
+        if (iActual != colorBufferDepth)
+            DebugMessage(M64MSG_WARNING, "Failed to set GL_BUFFER_SIZE to %i. (it's %i)", colorBufferDepth, iActual);
+    if (CoreVideo_GL_GetAttribute(M64P_GL_DEPTH_SIZE, &iActual) == M64ERR_SUCCESS)
+        if (iActual != depthBufferDepth)
+            DebugMessage(M64MSG_WARNING, "Failed to set GL_DEPTH_SIZE to %i. (it's %i)", depthBufferDepth, iActual);
+*/
 
-
-//    /* Get function pointers to OpenGL extensions (blame Microsoft Windows for this) */
+    /* Get function pointers to OpenGL extensions (blame Microsoft Windows for this) */
 
 //#ifdef WIN32
 //    GLenum err = glewInit();
@@ -166,10 +175,12 @@ bool COGLGraphicsContext::Initialize(uint32 dwWidth, uint32 dwHeight, BOOL bWind
 //    }
 //#endif
 
-//    char caption[500];
-//    sprintf(caption, "%s v%i.%i.%i", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION));
-//    CoreVideo_SetCaption(caption);
-//    SetWindowMode();
+/*
+    char caption[500];
+    sprintf(caption, "%s v%i.%i.%i", PLUGIN_NAME, VERSION_PRINTF_SPLIT(PLUGIN_VERSION));
+    CoreVideo_SetCaption(caption);
+    SetWindowMode();
+*/
 
 #ifdef USE_SDL
 //// paulscode, added for switching between RGBA8888 and RGB565
@@ -235,25 +246,31 @@ void COGLGraphicsContext::InitState(void)
     m_pExtensionStr = glGetString(GL_EXTENSIONS);
     m_pVersionStr = glGetString(GL_VERSION);
     m_pVendorStr = glGetString(GL_VENDOR);
-    //glMatrixMode(GL_PROJECTION);
-    //OPENGL_CHECK_ERRORS;
-    //glLoadIdentity();
-    //OPENGL_CHECK_ERRORS;
+/*
+    glMatrixMode(GL_PROJECTION);
+    OPENGL_CHECK_ERRORS;
+    glLoadIdentity();
+    OPENGL_CHECK_ERRORS;
+*/
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     OPENGL_CHECK_ERRORS;
     glClearDepthf(1.0f);
     OPENGL_CHECK_ERRORS;
 
-    //glShadeModel(GL_SMOOTH);
-    //OPENGL_CHECK_ERRORS;
+/*
+    glShadeModel(GL_SMOOTH);
+    OPENGL_CHECK_ERRORS;
+*/
 
     //position viewer 
     //glMatrixMode(GL_MODELVIEW);
     //glLoadIdentity();
 
-    //glDisable(GL_ALPHA_TEST);
-    //OPENGL_CHECK_ERRORS;
+/*
+    glDisable(GL_ALPHA_TEST);
+    OPENGL_CHECK_ERRORS;
+*/
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     OPENGL_CHECK_ERRORS;
@@ -264,26 +281,32 @@ void COGLGraphicsContext::InitState(void)
     OPENGL_CHECK_ERRORS;
     glDisable(GL_CULL_FACE);
     OPENGL_CHECK_ERRORS;
-    //glDisable(GL_NORMALIZE);
-    //OPENGL_CHECK_ERRORS;
+/*
+    glDisable(GL_NORMALIZE);
+    OPENGL_CHECK_ERRORS;
+*/
 
     glDepthFunc(GL_LEQUAL);
     OPENGL_CHECK_ERRORS;
     glEnable(GL_DEPTH_TEST);
     OPENGL_CHECK_ERRORS;
 
-    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    //OPENGL_CHECK_ERRORS;
+/*
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    OPENGL_CHECK_ERRORS;
+*/
 
     glEnable(GL_BLEND);
     OPENGL_CHECK_ERRORS;
-    //glEnable(GL_ALPHA_TEST);
-    //OPENGL_CHECK_ERRORS;
+/*
+    glEnable(GL_ALPHA_TEST);
+    OPENGL_CHECK_ERRORS;
 
-    //glMatrixMode(GL_PROJECTION);
-    //OPENGL_CHECK_ERRORS;
-    //glLoadIdentity();
-    //OPENGL_CHECK_ERRORS;
+    glMatrixMode(GL_PROJECTION);
+    OPENGL_CHECK_ERRORS;
+    glLoadIdentity();
+    OPENGL_CHECK_ERRORS;
+*/
     
     glDepthRangef(0.0f, 1.0f);
     OPENGL_CHECK_ERRORS;
@@ -315,7 +338,9 @@ void COGLGraphicsContext::InitOGLExtension(void)
         || options.anisotropicFiltering == 16))
     {
         //Get the max value of aniso that the graphic card support
-        //glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_maxAnisotropicFiltering);
+/*
+        glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_maxAnisotropicFiltering);
+*/
         m_maxAnisotropicFiltering = 0;
         OPENGL_CHECK_ERRORS;
 
@@ -397,8 +422,10 @@ void COGLGraphicsContext::UpdateFrame(bool swaponly)
 {
     status.gFrameCount++;
 
-    //glFlush();
-    //OPENGL_CHECK_ERRORS;
+/*
+    glFlush();
+    OPENGL_CHECK_ERRORS;
+*/
     //glFinish();
     //wglSwapIntervalEXT(0);
 
@@ -449,11 +476,12 @@ void COGLGraphicsContext::UpdateFrame(bool swaponly)
    
    // if emulator defined a render callback function, call it before buffer swap
    if(renderCallback)
-//       (*renderCallback)();
        (*renderCallback)(status.bScreenIsDrawn);
 
-   //CoreVideo_GL_SwapBuffers();
-   //eglSwapBuffers(EGL_display, EGL_surface);
+/*
+   CoreVideo_GL_SwapBuffers();
+   eglSwapBuffers(EGL_display, EGL_surface);
+*/
     Android_JNI_SwapWindow();  // paulscode
    
 

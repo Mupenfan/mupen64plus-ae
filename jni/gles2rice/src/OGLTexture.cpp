@@ -120,11 +120,13 @@ void COGLTexture::EndUpdate(DrawInfo *di)
         int m_maximumAnistropy = pcontext->getMaxAnisotropicFiltering(); //if getMaxAnisotropicFiltering() return more than 0, so aniso is supported and maxAnisotropicFiltering is set
 
         // Set Anisotropic filtering (mipmapping have to be activated, aniso filtering is not effective without)
-//        if( m_maximumAnistropy )
-//        {
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, m_maximumAnistropy);
-//            OPENGL_CHECK_ERRORS;
-//        }
+/*
+        if( m_maximumAnistropy )
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, m_maximumAnistropy);
+            OPENGL_CHECK_ERRORS;
+        }
+*/
 
         // Set Mipmap
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
@@ -132,8 +134,10 @@ void COGLTexture::EndUpdate(DrawInfo *di)
 
         // Tell to hardware to generate mipmap (himself) when glTexImage2D is called
         //TODO:Check Mipmapping
-        //glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-        //OPENGL_CHECK_ERRORS;
+/*
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); 
+        OPENGL_CHECK_ERRORS;
+*/
     }
     else
     {

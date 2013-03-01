@@ -70,7 +70,6 @@ OGLRender::OGLRender()
     m_bSupportFogCoordExt = pcontext->m_bSupportFogCoord;
     m_bMultiTexture = pcontext->m_bSupportMultiTexture;
     m_bSupportClampToEdge = false;
-
     for( int i=0; i<8; i++ )
     {
         m_curBoundTex[i]=0;
@@ -121,27 +120,36 @@ void OGLRender::Initialize(void)
     COGLGraphicsContext *pcontext = (COGLGraphicsContext *)(CGraphicsContext::g_pGraphicsContext);
     if( pcontext->IsExtensionSupported("GL_IBM_texture_mirrored_repeat") )
     {
-        //OGLXUVFlagMaps[TEXTURE_UV_FLAG_MIRROR].realFlag = GL_MIRRORED_REPEAT_IBM;
+/*
+        OGLXUVFlagMaps[TEXTURE_UV_FLAG_MIRROR].realFlag = GL_MIRRORED_REPEAT_IBM;
+*/
     }
     else if( pcontext->IsExtensionSupported("ARB_texture_mirrored_repeat") )
     {
-        //OGLXUVFlagMaps[TEXTURE_UV_FLAG_MIRROR].realFlag = GL_MIRRORED_REPEAT;
+/*
+        OGLXUVFlagMaps[TEXTURE_UV_FLAG_MIRROR].realFlag = GL_MIRRORED_REPEAT;
+*/
     }
     else
     {
         OGLXUVFlagMaps[TEXTURE_UV_FLAG_MIRROR].realFlag = GL_MIRRORED_REPEAT;
     }
 
-//    if( pcontext->IsExtensionSupported("GL_texture_border_clamp") || pcontext->IsExtensionSupported("GL_EXT_texture_edge_clamp") )
-//    {
+/*
+    if( pcontext->IsExtensionSupported("GL_texture_border_clamp") || pcontext->IsExtensionSupported("GL_EXT_texture_edge_clamp") )
+    {
+*/
         m_bSupportClampToEdge = true;
         OGLXUVFlagMaps[TEXTURE_UV_FLAG_CLAMP].realFlag = GL_CLAMP_TO_EDGE;
-//    }
-//    else
-//    {
-//        m_bSupportClampToEdge = false;
-//        OGLXUVFlagMaps[TEXTURE_UV_FLAG_CLAMP].realFlag = GL_CLAMP_TO_EDGE;
-//    }
+/*
+    }
+    else
+    {
+        m_bSupportClampToEdge = false;
+        OGLXUVFlagMaps[TEXTURE_UV_FLAG_CLAMP].realFlag = GL_CLAMP_TO_EDGE;
+    }
+*/
+
     hardwareType = Android_JNI_GetHardwareType();
 }
 //===================================================================
@@ -188,11 +196,13 @@ void OGLRender::ApplyTextureFilter()
 
 void OGLRender::SetShadeMode(RenderShadeMode mode)
 {
-//    if( mode == SHADE_SMOOTH )
-//        glShadeModel(GL_SMOOTH);
-//    else
-//        glShadeModel(GL_FLAT);
-//    OPENGL_CHECK_ERRORS;
+/*
+    if( mode == SHADE_SMOOTH )
+        glShadeModel(GL_SMOOTH);
+    else
+        glShadeModel(GL_FLAT);
+    OPENGL_CHECK_ERRORS;
+*/
 }
 
 void OGLRender::ZBufferEnable(BOOL bZBuffer)
@@ -280,8 +290,10 @@ void OGLRender::SetZUpdate(BOOL bZUpdate)
 static float f1, f2;
 void OGLRender::ApplyZBias(int bias)
 {
-//    float f1 = bias > 0 ? -3.0f : 0.0f;  // z offset = -3.0 * max(abs(dz/dx),abs(dz/dy)) per pixel delta z slope
-//    float f2 = bias > 0 ? -3.0f : 0.0f;  // z offset += -3.0 * 1 bit
+/*
+    float f1 = bias > 0 ? -3.0f : 0.0f;  // z offset = -3.0 * max(abs(dz/dx),abs(dz/dy)) per pixel delta z slope
+    float f2 = bias > 0 ? -3.0f : 0.0f;  // z offset += -3.0 * 1 bit
+*/
     //// paulscode, added for different configurations based on hardware
     // (part of the missing shadows and stars bug fix)
     if( hardwareType == HARDWARE_TYPE_OMAP )
@@ -359,16 +371,18 @@ void OGLRender::ForceAlphaRef(uint32 dwAlpha)
 
 void OGLRender::SetFillMode(FillMode mode)
 {
-//    if( mode == RICE_FILLMODE_WINFRAME )
-//    {
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-//        OPENGL_CHECK_ERRORS;
-//    }
-//    else
-//    {
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//        OPENGL_CHECK_ERRORS;
-//    }
+/*
+    if( mode == RICE_FILLMODE_WINFRAME )
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        OPENGL_CHECK_ERRORS;
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        OPENGL_CHECK_ERRORS;
+    }
+*/
 }
 
 void OGLRender::SetCullMode(bool bCullFront, bool bCullBack)
@@ -620,22 +634,24 @@ bool OGLRender::RenderFillRect(uint32 dwColor, float depth)
 
 bool OGLRender::RenderLine3D()
 {
-//    ApplyZBias(0);  // disable z offsets
-//
-//    glBegin(GL_TRIANGLE_FAN);
-//
-//    glColor4f(m_line3DVtx[1].r, m_line3DVtx[1].g, m_line3DVtx[1].b, m_line3DVtx[1].a);
-//    glVertex3f(m_line3DVector[3].x, m_line3DVector[3].y, -m_line3DVtx[1].z);
-//    glVertex3f(m_line3DVector[2].x, m_line3DVector[2].y, -m_line3DVtx[0].z);
-//
-//    glColor4ub(m_line3DVtx[0].r, m_line3DVtx[0].g, m_line3DVtx[0].b, m_line3DVtx[0].a);
-//    glVertex3f(m_line3DVector[1].x, m_line3DVector[1].y, -m_line3DVtx[1].z);
-//    glVertex3f(m_line3DVector[0].x, m_line3DVector[0].y, -m_line3DVtx[0].z);
-//
-//    glEnd();
-//    OPENGL_CHECK_ERRORS;
-//
-//    ApplyZBias(m_dwZBias);          // set Z offset back to previous value
+/*
+    ApplyZBias(0);  // disable z offsets
+
+    glBegin(GL_TRIANGLE_FAN);
+
+    glColor4f(m_line3DVtx[1].r, m_line3DVtx[1].g, m_line3DVtx[1].b, m_line3DVtx[1].a);
+    glVertex3f(m_line3DVector[3].x, m_line3DVector[3].y, -m_line3DVtx[1].z);
+    glVertex3f(m_line3DVector[2].x, m_line3DVector[2].y, -m_line3DVtx[0].z);
+    
+    glColor4ub(m_line3DVtx[0].r, m_line3DVtx[0].g, m_line3DVtx[0].b, m_line3DVtx[0].a);
+    glVertex3f(m_line3DVector[1].x, m_line3DVector[1].y, -m_line3DVtx[1].z);
+    glVertex3f(m_line3DVector[0].x, m_line3DVector[0].y, -m_line3DVtx[0].z);
+
+    glEnd();
+    OPENGL_CHECK_ERRORS;
+
+    ApplyZBias(m_dwZBias);          // set Z offset back to previous value
+*/
 
     return true;
 }
@@ -653,8 +669,10 @@ bool OGLRender::RenderFlushTris()
         if( !gRDP.bFogEnableInBlender && gRSP.bFogEnabled )
         {
             TurnFogOnOff(false);
-//            glDisable(GL_FOG);
-//            OPENGL_CHECK_ERRORS;
+/*
+            glDisable(GL_FOG);
+            OPENGL_CHECK_ERRORS;
+*/
         }
     }
 
@@ -662,7 +680,6 @@ bool OGLRender::RenderFlushTris()
 
     glViewportWrapper(windowSetting.vpLeftW + windowSetting.xpos, windowSetting.uDisplayHeight-windowSetting.vpTopW-windowSetting.vpHeightW+windowSetting.ypos, windowSetting.vpWidthW, windowSetting.vpHeightW, false);
     OPENGL_CHECK_ERRORS;
-
 
     //if options.bOGLVertexClipper == FALSE )
     {
@@ -875,9 +892,11 @@ void OGLRender::RenderReset()
 
 void OGLRender::SetAlphaTestEnable(BOOL bAlphaTestEnable)
 {
-//#ifdef DEBUGGER
-//    if( bAlphaTestEnable && debuggerEnableAlphaTest )
-//#else
+/*
+#ifdef DEBUGGER
+    if( bAlphaTestEnable && debuggerEnableAlphaTest )
+#else
+*/
 
 //#endif
     COGL_FragmentProgramCombiner* frag = (COGL_FragmentProgramCombiner*)m_pColorCombiner;
@@ -925,7 +944,7 @@ void OGLRender::EnableTexUnit(int unitno, BOOL flag)
     if( m_texUnitEnabled[0] != flag )
     {
         m_texUnitEnabled[0] = flag;
-        if(flag)
+        if( flag == TRUE )
         {
             glActiveTexture(GL_TEXTURE0 + unitno);
             OPENGL_CHECK_ERRORS;
@@ -1003,28 +1022,34 @@ void OGLRender::ApplyScissorWithClipRatio(bool force)
 void OGLRender::SetFogMinMax(float fMin, float fMax)
 {
     ((COGL_FragmentProgramCombiner*)m_pColorCombiner)->UpdateFog(gRSP.bFogEnabled);
-//    glFogf(GL_FOG_START, gRSPfFogMin); // Fog Start Depth
-//    OPENGL_CHECK_ERRORS;
-//    glFogf(GL_FOG_END, gRSPfFogMax); // Fog End Depth
-//    OPENGL_CHECK_ERRORS;
+/*
+    glFogf(GL_FOG_START, gRSPfFogMin); // Fog Start Depth
+    OPENGL_CHECK_ERRORS;
+    glFogf(GL_FOG_END, gRSPfFogMax); // Fog End Depth
+    OPENGL_CHECK_ERRORS;
+*/
 }
 
 void OGLRender::TurnFogOnOff(bool flag)
 {
     ((COGL_FragmentProgramCombiner*)m_pColorCombiner)->UpdateFog(flag);
-//    if( flag )
-//        glEnable(GL_FOG);
-//    else
-//        glDisable(GL_FOG);
-//    OPENGL_CHECK_ERRORS;
+/*
+    if( flag )
+        glEnable(GL_FOG);
+    else
+        glDisable(GL_FOG);
+    OPENGL_CHECK_ERRORS;
+*/
 }
 
 void OGLRender::SetFogEnable(bool bEnable)
 {
-//    DEBUGGER_IF_DUMP( (gRSP.bFogEnabled != (bEnable==TRUE) && logFog ), TRACE1("Set Fog %s", bEnable? "enable":"disable"));
-//
-    gRSP.bFogEnabled = bEnable&&(options.fogMethod == 1);
+/*
+    DEBUGGER_IF_DUMP( (gRSP.bFogEnabled != (bEnable==TRUE) && logFog ), TRACE1("Set Fog %s", bEnable? "enable":"disable"));
+*/
 
+    gRSP.bFogEnabled = bEnable&&(options.fogMethod == 1);
+    
     // If force fog
     if(options.fogMethod == 2)
     {
@@ -1036,21 +1061,23 @@ void OGLRender::SetFogEnable(bool bEnable)
     if( gRSP.bFogEnabled )
     {
         //TRACE2("Enable fog, min=%f, max=%f",gRSPfFogMin,gRSPfFogMax );
-
-
-        //glFogfv(GL_FOG_COLOR, gRDP.fvFogColor); // Set Fog Color
-        //OPENGL_CHECK_ERRORS;
-        //glFogf(GL_FOG_START, gRSPfFogMin); // Fog Start Depth
-        //OPENGL_CHECK_ERRORS;
-        //glFogf(GL_FOG_END, gRSPfFogMax); // Fog End Depth
-        //OPENGL_CHECK_ERRORS;
-        //glEnable(GL_FOG);
-        //OPENGL_CHECK_ERRORS;
+/*
+        glFogfv(GL_FOG_COLOR, gRDP.fvFogColor); // Set Fog Color
+        OPENGL_CHECK_ERRORS;
+        glFogf(GL_FOG_START, gRSPfFogMin); // Fog Start Depth
+        OPENGL_CHECK_ERRORS;
+        glFogf(GL_FOG_END, gRSPfFogMax); // Fog End Depth
+        OPENGL_CHECK_ERRORS;
+        glEnable(GL_FOG);
+        OPENGL_CHECK_ERRORS;
+*/
     }
     else
     {
-       /* glDisable(GL_FOG);
-        OPENGL_CHECK_ERRORS;*/
+/*
+        glDisable(GL_FOG);
+        OPENGL_CHECK_ERRORS;
+*/
     }
 }
 
@@ -1061,7 +1088,9 @@ void OGLRender::SetFogColor(uint32 r, uint32 g, uint32 b, uint32 a)
     gRDP.fvFogColor[1] = g/255.0f;      //g
     gRDP.fvFogColor[2] = b/255.0f;          //b
     gRDP.fvFogColor[3] = a/255.0f;      //a
-    //glFogfv(GL_FOG_COLOR, gRDP.fvFogColor); // Set Fog Color
+/*
+    glFogfv(GL_FOG_COLOR, gRDP.fvFogColor); // Set Fog Color
+*/
     OPENGL_CHECK_ERRORS;
 }
 
@@ -1080,8 +1109,10 @@ void OGLRender::DisableMultiTexture()
 
 void OGLRender::EndRendering(void)
 {
-    //glFlush();
-    //OPENGL_CHECK_ERRORS;
+/*
+    glFlush();
+    OPENGL_CHECK_ERRORS;
+*/
     if( CRender::gRenderReferenceCount > 0 ) 
         CRender::gRenderReferenceCount--;
 }

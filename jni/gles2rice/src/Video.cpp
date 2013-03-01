@@ -118,7 +118,9 @@ ptr_VidExt_SetCaption            CoreVideo_SetCaption = NULL;
 ptr_VidExt_ToggleFullScreen      CoreVideo_ToggleFullScreen = NULL;
 ptr_VidExt_GL_GetProcAddress     CoreVideo_GL_GetProcAddress = NULL;
 ptr_VidExt_GL_SetAttribute       CoreVideo_GL_SetAttribute = NULL;
-//ptr_VidExt_GL_GetAttribute       CoreVideo_GL_GetAttribute = NULL;
+/*
+ptr_VidExt_GL_GetAttribute       CoreVideo_GL_GetAttribute = NULL;
+*/
 ptr_VidExt_GL_SwapBuffers        CoreVideo_GL_SwapBuffers = NULL;
 
 //---------------------------------------------------------------------------------------
@@ -277,7 +279,7 @@ static void ProcessDListStep2(void)
     }
 
     g_CritialSection.Unlock();
-}
+}   
 
 static bool StartVideo(void)
 {
@@ -681,27 +683,29 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     l_DebugCallContext = Context;
 
     /* attach and call the CoreGetAPIVersions function, check Config and Video Extension API versions for compatibility */
-//    ptr_CoreGetAPIVersions CoreAPIVersionFunc;
-//    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreLibHandle, "CoreGetAPIVersions");
-//    if (CoreAPIVersionFunc == NULL)
-//    {
-//        DebugMessage(M64MSG_ERROR, "Core emulator broken; no CoreAPIVersionFunc() function found.");
-//        return M64ERR_INCOMPATIBLE;
-//    }
-//    int ConfigAPIVersion, DebugAPIVersion, VidextAPIVersion;
-//    (*CoreAPIVersionFunc)(&ConfigAPIVersion, &DebugAPIVersion, &VidextAPIVersion, NULL);
-//    if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000))
-//    {
-//        DebugMessage(M64MSG_ERROR, "Emulator core Config API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
-//                VERSION_PRINTF_SPLIT(ConfigAPIVersion), VERSION_PRINTF_SPLIT(CONFIG_API_VERSION));
-//        return M64ERR_INCOMPATIBLE;
-//    }
-//    if ((VidextAPIVersion & 0xffff0000) != (VIDEXT_API_VERSION & 0xffff0000))
-//    {
-//        DebugMessage(M64MSG_ERROR, "Emulator core Video Extension API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
-//                VERSION_PRINTF_SPLIT(VidextAPIVersion), VERSION_PRINTF_SPLIT(VIDEXT_API_VERSION));
-//        return M64ERR_INCOMPATIBLE;
-//    }
+/*
+    ptr_CoreGetAPIVersions CoreAPIVersionFunc;
+    CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreLibHandle, "CoreGetAPIVersions");
+    if (CoreAPIVersionFunc == NULL)
+    {
+        DebugMessage(M64MSG_ERROR, "Core emulator broken; no CoreAPIVersionFunc() function found.");
+        return M64ERR_INCOMPATIBLE;
+    }
+    int ConfigAPIVersion, DebugAPIVersion, VidextAPIVersion;
+    (*CoreAPIVersionFunc)(&ConfigAPIVersion, &DebugAPIVersion, &VidextAPIVersion, NULL);
+    if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000))
+    {
+        DebugMessage(M64MSG_ERROR, "Emulator core Config API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
+                VERSION_PRINTF_SPLIT(ConfigAPIVersion), VERSION_PRINTF_SPLIT(CONFIG_API_VERSION));
+        return M64ERR_INCOMPATIBLE;
+    }
+    if ((VidextAPIVersion & 0xffff0000) != (VIDEXT_API_VERSION & 0xffff0000))
+    {
+        DebugMessage(M64MSG_ERROR, "Emulator core Video Extension API (v%i.%i.%i) incompatible with plugin (v%i.%i.%i)",
+                VERSION_PRINTF_SPLIT(VidextAPIVersion), VERSION_PRINTF_SPLIT(VIDEXT_API_VERSION));
+        return M64ERR_INCOMPATIBLE;
+    }
+*/
 
     /* Get the core config function pointers from the library handle */
     ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreLibHandle, "ConfigOpenSection");
@@ -739,7 +743,9 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle CoreLibHandle, void *Con
     CoreVideo_ToggleFullScreen = (ptr_VidExt_ToggleFullScreen) osal_dynlib_getproc(CoreLibHandle, "VidExt_ToggleFullScreen");
     CoreVideo_GL_GetProcAddress = (ptr_VidExt_GL_GetProcAddress) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_GetProcAddress");
     CoreVideo_GL_SetAttribute = (ptr_VidExt_GL_SetAttribute) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_SetAttribute");
-    //CoreVideo_GL_GetAttribute = (ptr_VidExt_GL_GetAttribute) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_GetAttribute");
+/*
+    CoreVideo_GL_GetAttribute = (ptr_VidExt_GL_GetAttribute) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_GetAttribute");
+*/
     CoreVideo_GL_SwapBuffers = (ptr_VidExt_GL_SwapBuffers) osal_dynlib_getproc(CoreLibHandle, "VidExt_GL_SwapBuffers");
 
     if (!CoreVideo_Init || !CoreVideo_Quit || !CoreVideo_ListFullscreenModes || !CoreVideo_SetVideoMode ||
@@ -1059,29 +1065,30 @@ EXPORT void CALL ShowCFB(void)
 //void ReadScreen2( void *dest, int *width, int *height, int bFront )
 EXPORT void CALL ReadScreen2(void *dest, int *width, int *height, int bFront)
 {
-//    if (width == NULL || height == NULL)
-//        return;
-//
-//    *width = windowSetting.uDisplayWidth;
-//    *height = windowSetting.uDisplayHeight;
-//
-//    if (dest == NULL)
-//        return;
-//
-//    GLint oldMode;
-//    glGetIntegerv( GL_READ_BUFFER, &oldMode );
-//    if (bFront)
-//        glReadBuffer( GL_FRONT );
-//    else
-//        glReadBuffer( GL_BACK );
-//    glReadPixels( 0, 0, windowSetting.uDisplayWidth, windowSetting.uDisplayHeight,
-//                 GL_RGB, GL_UNSIGNED_BYTE, dest );
-//    glReadBuffer( oldMode );
+/*
+    if (width == NULL || height == NULL)
+        return;
+
+    *width = windowSetting.uDisplayWidth;
+    *height = windowSetting.uDisplayHeight;
+   
+    if (dest == NULL)
+        return;
+   
+    GLint oldMode;
+    glGetIntegerv( GL_READ_BUFFER, &oldMode );
+    if (bFront)
+        glReadBuffer( GL_FRONT );
+    else
+        glReadBuffer( GL_BACK );
+    glReadPixels( 0, 0, windowSetting.uDisplayWidth, windowSetting.uDisplayHeight,
+                 GL_RGB, GL_UNSIGNED_BYTE, dest );
+    glReadBuffer( oldMode );
+*/
 }
     
 
-//EXPORT void CALL SetRenderingCallback(void (*callback)())
-EXPORT void CALL SetRenderingCallback(void (*callback)(int i))
+EXPORT void CALL SetRenderingCallback(void (*callback)(int))
 {
     renderCallback = callback;
 }

@@ -150,10 +150,14 @@ bool COGLFragmentShaderCombiner::Initialize(void)
         return false;
 
     COGLGraphicsContext *pcontext = (COGLGraphicsContext *)(CGraphicsContext::g_pGraphicsContext);
-//    if( pcontext->IsExtensionSupported("GL_fragment_shader") )
-//    {
+/*
+    if( pcontext->IsExtensionSupported("GL_fragment_shader") )
+    {
+*/
         m_bShaderIsSupported = true;
-//    }
+/*
+    }
+*/
 
     return true;
 }
@@ -294,10 +298,14 @@ bool COGL_FragmentProgramCombiner::Initialize(void)
         return false;
 
     COGLGraphicsContext *pcontext = (COGLGraphicsContext *)(CGraphicsContext::g_pGraphicsContext);
-//    if( pcontext->IsExtensionSupported("GL_fragment_program") )
-//    {
+/*
+    if( pcontext->IsExtensionSupported("GL_fragment_program") )
+    {
+*/
         m_bFragmentProgramIsSupported = true;
-//    }
+/*
+    }
+*/
 
     return true;
 }
@@ -306,8 +314,10 @@ bool COGL_FragmentProgramCombiner::Initialize(void)
 
 void COGL_FragmentProgramCombiner::DisableCombiner(void)
 {
-    //glDisable(GL_FRAGMENT_PROGRAM);
-    //OPENGL_CHECK_ERRORS;
+/*
+    glDisable(GL_FRAGMENT_PROGRAM);
+    OPENGL_CHECK_ERRORS;
+*/
     COGLColorCombiner4::DisableCombiner();
 }
 
