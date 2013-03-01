@@ -57,8 +57,8 @@ extern "C" int Android_JNI_GetHardwareType();
 UVFlagMap OGLXUVFlagMaps[] =
 {
 {TEXTURE_UV_FLAG_WRAP, GL_REPEAT},
-{TEXTURE_UV_FLAG_MIRROR, GL_MIRRORED_REPEAT},
-{TEXTURE_UV_FLAG_CLAMP, GL_CLAMP_TO_EDGE},
+{TEXTURE_UV_FLAG_MIRROR, GL_MIRRORED_REPEAT_ARB},
+{TEXTURE_UV_FLAG_CLAMP, GL_CLAMP},
 };
 
 GLuint disabledTextureID;
@@ -127,7 +127,7 @@ void OGLRender::Initialize(void)
     else if( pcontext->IsExtensionSupported("ARB_texture_mirrored_repeat") )
     {
 /*
-        OGLXUVFlagMaps[TEXTURE_UV_FLAG_MIRROR].realFlag = GL_MIRRORED_REPEAT;
+        OGLXUVFlagMaps[TEXTURE_UV_FLAG_MIRROR].realFlag = GL_MIRRORED_REPEAT_ARB;
 */
     }
     else
@@ -136,7 +136,7 @@ void OGLRender::Initialize(void)
     }
 
 /*
-    if( pcontext->IsExtensionSupported("GL_texture_border_clamp") || pcontext->IsExtensionSupported("GL_EXT_texture_edge_clamp") )
+    if( pcontext->IsExtensionSupported(M64P_GL_ARB_TEXTURE_BORDER_CLAMP) || pcontext->IsExtensionSupported("GL_EXT_texture_edge_clamp") )
     {
 */
         m_bSupportClampToEdge = true;
@@ -146,7 +146,7 @@ void OGLRender::Initialize(void)
     else
     {
         m_bSupportClampToEdge = false;
-        OGLXUVFlagMaps[TEXTURE_UV_FLAG_CLAMP].realFlag = GL_CLAMP_TO_EDGE;
+        OGLXUVFlagMaps[TEXTURE_UV_FLAG_CLAMP].realFlag = GL_CLAMP;
     }
 */
 
@@ -234,7 +234,7 @@ void OGLRender::ClearBuffer(bool cbuffer, bool zbuffer)
     if( cbuffer )   flag |= GL_COLOR_BUFFER_BIT;
     if( zbuffer )   flag |= GL_DEPTH_BUFFER_BIT;
     float depth = ((gRDP.originalFillColor&0xFFFF)>>2)/(float)0x3FFF;
-    glClearDepthf(depth);
+    glClearDepth(depth);
     OPENGL_CHECK_ERRORS;
     glClear(flag);
     OPENGL_CHECK_ERRORS;
@@ -243,7 +243,7 @@ void OGLRender::ClearBuffer(bool cbuffer, bool zbuffer)
 void OGLRender::ClearZBuffer(float depth)
 {
     uint32 flag=GL_DEPTH_BUFFER_BIT;
-    glClearDepthf(depth);
+    glClearDepth(depth);
     OPENGL_CHECK_ERRORS;
     glClear(flag);
     OPENGL_CHECK_ERRORS;
@@ -694,22 +694,22 @@ bool OGLRender::RenderFlushTris()
         glVertexPointer( 4, GL_FLOAT, sizeof(float)*5, &(g_vtxProjected5Clipped[0][0]) );
         glEnableClientState( GL_VERTEX_ARRAY );
 
-        pglClientActiveTextureARB( GL_TEXTURE0 );
+        pglClientActiveTextureARB( GL_TEXTURE0_ARB );
         glTexCoordPointer( 2, GL_FLOAT, sizeof( TLITVERTEX ), &(g_clippedVtxBuffer[0].tcord[0].u) );
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
-        pglClientActiveTextureARB( GL_TEXTURE1 );
+        pglClientActiveTextureARB( GL_TEXTURE1_ARB );
         glTexCoordPointer( 2, GL_FLOAT, sizeof( TLITVERTEX ), &(g_clippedVtxBuffer[0].tcord[1].u) );
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
         glDrawElements( GL_TRIANGLES, gRSP.numVertices, GL_UNSIGNED_INT, g_vtxIndex );
 
         // Reset the array
-        pglClientActiveTextureARB( GL_TEXTURE0 );
+        pglClientActiveTextureARB( GL_TEXTURE0_ARB );
         glTexCoordPointer( 2, GL_FLOAT, sizeof( TLITVERTEX ), &(g_vtxBuffer[0].tcord[0].u) );
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
-        pglClientActiveTextureARB( GL_TEXTURE1 );
+        pglClientActiveTextureARB( GL_TEXTURE1_ARB );
         glTexCoordPointer( 2, GL_FLOAT, sizeof( TLITVERTEX ), &(g_vtxBuffer[0].tcord[1].u) );
         glEnableClientState( GL_TEXTURE_COORD_ARRAY );
 
@@ -946,14 +946,14 @@ void OGLRender::EnableTexUnit(int unitno, BOOL flag)
         m_texUnitEnabled[0] = flag;
         if( flag == TRUE )
         {
-            glActiveTexture(GL_TEXTURE0 + unitno);
+            glActiveTexture(GL_TEXTURE0_ARB + unitno);
             OPENGL_CHECK_ERRORS;
             glBindTexture(GL_TEXTURE_2D,m_curBoundTex[unitno]);
             OPENGL_CHECK_ERRORS;
         }
         else
         {
-            glActiveTexture(GL_TEXTURE0 + unitno);
+            glActiveTexture(GL_TEXTURE0_ARB + unitno);
             OPENGL_CHECK_ERRORS;
             glEnable(GL_BLEND); //Need blend for transparent disabled texture
             glBindTexture(GL_TEXTURE_2D,disabledTextureID);
@@ -1096,13 +1096,13 @@ void OGLRender::SetFogColor(uint32 r, uint32 g, uint32 b, uint32 a)
 
 void OGLRender::DisableMultiTexture()
 {
-    glActiveTexture(GL_TEXTURE1);
+    pglActiveTexture(GL_TEXTURE1_ARB);
     OPENGL_CHECK_ERRORS;
     EnableTexUnit(1,FALSE);
-    glActiveTexture(GL_TEXTURE0);
+    pglActiveTexture(GL_TEXTURE0_ARB);
     OPENGL_CHECK_ERRORS;
     EnableTexUnit(0,FALSE);
-    glActiveTexture(GL_TEXTURE0);
+    pglActiveTexture(GL_TEXTURE0_ARB);
     OPENGL_CHECK_ERRORS;
     EnableTexUnit(0,TRUE);
 }
@@ -1130,7 +1130,9 @@ void OGLRender::glViewportWrapper(GLint x, GLint y, GLsizei width, GLsizei heigh
         m_width=width;
         m_height=height;
         mflag=flag;
-//        if( flag )  glOrthof(0, windowSetting.uDisplayWidth, windowSetting.uDisplayHeight, 0, -1, 1);
+/*
+        if( flag )  glOrtho(0, windowSetting.uDisplayWidth, windowSetting.uDisplayHeight, 0, -1, 1);
+*/
         OPENGL_CHECK_ERRORS;
         glViewport(x,y,width,height);
         OPENGL_CHECK_ERRORS;

@@ -1604,6 +1604,7 @@ int CheckTextureInfos( CSortedList<uint64,ExtTxtrInfo> &infos, TxtrCacheEntry &e
     if( indexb >= infosize )
         indexb = -1;
 
+
     // found texture with sep. alpha channel
 
     if( indexb >= 0 )

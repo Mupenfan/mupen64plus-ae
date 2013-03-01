@@ -635,7 +635,7 @@ uint32 CalculateRDRAMCRC(void *pPhysicalAddress, uint32 left, uint32 top, uint32
                 y--;
             }
 
-#elif !defined(__GNUC__) && !defined(NO_ASM)
+#elif !defined(__GNUC__)
             __asm 
             {
                 push eax
@@ -669,7 +669,7 @@ l1:             mov esi, [ecx+ebx]
                 pop ebx
                 pop eax
             }
-#elif defined(__GNUC__) && defined(__x86_64__) && !defined(NO_ASM)
+#elif defined(__GNUC__) && defined(__x86_64__)
         asm volatile(" xorl          %k2,      %k2           \n"
                      " movslq        %k4,      %q4           \n"
                      "0:                                     \n"

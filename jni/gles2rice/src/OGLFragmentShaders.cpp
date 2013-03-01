@@ -151,13 +151,12 @@ bool COGLFragmentShaderCombiner::Initialize(void)
 
     COGLGraphicsContext *pcontext = (COGLGraphicsContext *)(CGraphicsContext::g_pGraphicsContext);
 /*
-    if( pcontext->IsExtensionSupported("GL_fragment_shader") )
+    if( pcontext->IsExtensionSupported(M64P_GL_ARB_FRAGMENT_SHADER) )
     {
-*/
         m_bShaderIsSupported = true;
-/*
     }
 */
+    m_bShaderIsSupported = true;
 
     return true;
 }
@@ -301,11 +300,10 @@ bool COGL_FragmentProgramCombiner::Initialize(void)
 /*
     if( pcontext->IsExtensionSupported("GL_fragment_program") )
     {
-*/
         m_bFragmentProgramIsSupported = true;
-/*
     }
 */
+    m_bFragmentProgramIsSupported = true;
 
     return true;
 }

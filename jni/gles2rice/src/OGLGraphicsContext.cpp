@@ -255,7 +255,7 @@ void COGLGraphicsContext::InitState(void)
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     OPENGL_CHECK_ERRORS;
-    glClearDepthf(1.0f);
+    glClearDepth(1.0f);
     OPENGL_CHECK_ERRORS;
 
 /*
@@ -315,7 +315,7 @@ void COGLGraphicsContext::InitState(void)
 void COGLGraphicsContext::InitOGLExtension(void)
 {
     // important extension features, it is very bad not to have these feature
-    m_bSupportMultiTexture = IsExtensionSupported("GL_multitexture");
+    m_bSupportMultiTexture = IsExtensionSupported(M64P_GL_ARB_MULTITEXTURE);
     m_bSupportTextureEnvCombine = IsExtensionSupported("GL_EXT_texture_env_combine");
     
     m_bSupportSeparateSpecularColor = IsExtensionSupported("GL_EXT_separate_specular_color");
@@ -412,7 +412,7 @@ void COGLGraphicsContext::Clear(ClearFlag dwFlags, uint32 color, float depth)
     float a = ((color>>24)&0xFF)/255.0f;
     glClearColor(r, g, b, a);
     OPENGL_CHECK_ERRORS;
-    glClearDepthf(depth);
+    glClearDepth(depth);
     OPENGL_CHECK_ERRORS;
     glClear(flag);  //Clear color buffer and depth buffer
     OPENGL_CHECK_ERRORS;
@@ -484,7 +484,6 @@ void COGLGraphicsContext::UpdateFrame(bool swaponly)
 */
     Android_JNI_SwapWindow();  // paulscode
    
-
    /*if(options.bShowFPS)
      {
     static unsigned int lastTick=0;
@@ -503,9 +502,9 @@ void COGLGraphicsContext::UpdateFrame(bool swaponly)
 
     glDepthMask(GL_TRUE);
     OPENGL_CHECK_ERRORS;
-    glClearDepthf(1.0f);
+    glClearDepth(1.0);
     OPENGL_CHECK_ERRORS;
-    if( !g_curRomInfo.bForceScreenClear )
+    if( !g_curRomInfo.bForceScreenClear ) 
     {
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         OPENGL_CHECK_ERRORS;

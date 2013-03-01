@@ -72,7 +72,7 @@ bool COGLColorCombiner::Initialize(void)
     m_bSupportMultiTexture = false;
 
     COGLGraphicsContext *pcontext = (COGLGraphicsContext *)(CGraphicsContext::g_pGraphicsContext);
-    if( pcontext->IsExtensionSupported("GL_texture_env_add") || pcontext->IsExtensionSupported("GL_EXT_texture_env_add") )
+    if( pcontext->IsExtensionSupported(M64P_GL_ARB_TEXTURE_ENV_ADD) || pcontext->IsExtensionSupported("GL_EXT_texture_env_add") )
     {
         m_bSupportAdd = true;
     }
@@ -87,7 +87,6 @@ bool COGLColorCombiner::Initialize(void)
 
 void COGLColorCombiner::DisableCombiner(void)
 {
-    DebugMessage(M64MSG_INFO,"Disabling Combiner\n");
     m_pOGLRender->DisableMultiTexture();
     glEnable(GL_BLEND);
     OPENGL_CHECK_ERRORS;
@@ -101,9 +100,7 @@ void COGLColorCombiner::DisableCombiner(void)
         {
             m_pOGLRender->EnableTexUnit(0,TRUE);
             m_pOGLRender->BindTexture(pTexture->m_dwTextureName, 0);
-/*
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-*/
             OPENGL_CHECK_ERRORS;
             m_pOGLRender->SetAllTexelRepeatFlag();
         }
@@ -116,9 +113,7 @@ void COGLColorCombiner::DisableCombiner(void)
     }
     else
     {
-/*
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-*/
         OPENGL_CHECK_ERRORS;
         m_pOGLRender->EnableTexUnit(0,FALSE);
     }
@@ -141,9 +136,7 @@ void COGLColorCombiner::InitCombinerCycleCopy(void)
     }
 #endif
 
-/*
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-*/
     OPENGL_CHECK_ERRORS;
 }
 
@@ -159,9 +152,7 @@ void COGLColorCombiner::InitCombinerCycle12(void)
     m_pOGLRender->DisableMultiTexture();
     if( !m_bTexelsEnable )
     {
-/*
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-*/
         OPENGL_CHECK_ERRORS;
         m_pOGLRender->EnableTexUnit(0,FALSE);
         return;
@@ -220,7 +211,7 @@ void COGLColorCombiner::InitCombinerCycle12(void)
             if( shadeIsUsedInColor && texIsUsedInColor )
             {
                 if( m_bSupportSubtract )
-                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_SUBTRACT);
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_SUBTRACT_ARB);
                 else
                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
             }
@@ -340,18 +331,16 @@ void COGLColorCombiner::InitCombinerBlenderForSimpleTextureDraw(uint32 tile)
     }
     m_pOGLRender->SetAllTexelRepeatFlag();
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     OPENGL_CHECK_ERRORS;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     OPENGL_CHECK_ERRORS;
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); // Linear Filtering
     OPENGL_CHECK_ERRORS;
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR); // Linear Filtering
     OPENGL_CHECK_ERRORS;
 
-/*
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-*/
     OPENGL_CHECK_ERRORS;
     m_pOGLRender->SetAlphaTestEnable(FALSE);
 }

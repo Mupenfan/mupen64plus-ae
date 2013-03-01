@@ -17,21 +17,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#include "OGLPlatform.h"
 #include "DeviceBuilder.h"
 #include "FrameBuffer.h"
-/*
-#include "OGLCombinerNV.h"
-#include "OGLCombinerTNT2.h"
-*/
 #include "OGLDebug.h"
 #include "OGLFragmentShaders.h"
 #include "OGLExtRender.h"
 #include "OGLGraphicsContext.h"
 #include "OGLTexture.h"
-
-#include "OGLCombiner.h"
-//#include "OGLExtCombiner.h"
-#include "GeneralCombiner.h"
 
 //========================================================================
 CDeviceBuilder* CDeviceBuilder::m_pInstance=NULL;
@@ -240,7 +233,14 @@ CColorCombiner * OGLDeviceBuilder::CreateColorCombiner(CRender *pRender)
         }
         else
         {
+/*
             m_deviceType = (SupportedDeviceType)options.OpenglRenderSetting;
+            if (m_deviceType == NVIDIA_OGL_DEVICE && !bNvidiaExtensionsSupported)
+            {
+                DebugMessage(M64MSG_WARNING, "Your video card does not support Nvidia OpenGL extensions.  Falling back to auto device.");
+                m_deviceType = OGL_DEVICE;
+            }
+*/
             if( m_deviceType == OGL_DEVICE )    // Best fit
             {
                 GLint maxUnit = 2;
@@ -251,14 +251,14 @@ CColorCombiner * OGLDeviceBuilder::CreateColorCombiner(CRender *pRender)
                 OPENGL_CHECK_ERRORS;
 
 /*
-                if( pcontext->IsExtensionSupported("GL_fragment_program") )
+                if( pcontext->IsExtensionSupported(M64P_GL_ARB_FRAGMENT_PROGRAM) )
                 {
 */
                     m_pColorCombiner = new COGL_FragmentProgramCombiner(pRender);
                     DebugMessage(M64MSG_INFO, "OpenGL Combiner: Fragment Program");
 /*
                 }
-                else if( pcontext->IsExtensionSupported("GL_NV_texture_env_combine4") ||
+                else if( pcontext->IsExtensionSupported("GL_NV_texture_env_combine4") || 
                     pcontext->IsExtensionSupported("GL_NV_register_combiners") )
                 {
                     m_pColorCombiner = new COGLColorCombinerNvidia(pRender);
@@ -270,9 +270,9 @@ CColorCombiner * OGLDeviceBuilder::CreateColorCombiner(CRender *pRender)
                     DebugMessage(M64MSG_INFO, "OpenGL Combiner: TNT2");
                 }
                 else if( pcontext->IsExtensionSupported("GL_EXT_texture_env_combine") ||
-                         pcontext->IsExtensionSupported("GL_texture_env_combine") )
+                         pcontext->IsExtensionSupported(M64P_GL_ARB_TEXTURE_ENV_COMBINE) )
                 {
-                    if( pcontext->IsExtensionSupported("GL_texture_env_crossbar") )
+                    if( pcontext->IsExtensionSupported(M64P_GL_ARB_TEXTURE_ENV_CROSSBAR) )
                     {
                         if( maxUnit > 2 )
                         {
@@ -345,7 +345,6 @@ CColorCombiner * OGLDeviceBuilder::CreateColorCombiner(CRender *pRender)
                  default:
                      m_pColorCombiner = new COGLColorCombiner(pRender);
                      DebugMessage(M64MSG_INFO, "OpenGL Combiner: Basic OGL");
-                     break;
                         break;
                 }
 */
